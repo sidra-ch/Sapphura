@@ -1,0 +1,300 @@
+// Sappura E-Commerce Database Schema
+// Production Ready Version
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//////////////////////////////
+// PRODUCTS
+//////////////////////////////
+
+model Product {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String   @unique
+  sku           String?  @unique
+  description   String   @db.Text
+
+  price         Float
+  originalPrice Float?
+
+  category      String
+  subcategory   String?
+
+  images        String[]
+  sizes         String[]
+  colors        Json?
+
+  stock         Int      @default(0)
+  inStock       Boolean  @default(true)
+
+  rating        Float    @default(0)
+  reviewCount   Int      @default(0)
+
+  features      String[]
+
+  isActive      Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reviews       Review[]
+  orderItems    OrderItem[]
+  wishlists     Wishlist[]
+
+  @@index([category])
+  @@index([slug])
+}
+
+//////////////////////////////
+// CATEGORY
+//////////////////////////////
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+
+  description String?
+  image       String?
+
+  productCount Int     @default(0)
+
+  createdAt   DateTime @default(now())
+
+  @@index([slug])
+}
+
+//////////////////////////////
+// CUSTOMER
+//////////////////////////////
+
+model Customer {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  phone       String?
+
+  address     String?  @db.Text
+  city        String?
+  postalCode  String?
+
+  totalOrders Int      @default(0)
+  totalSpent  Float    @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      Order[]
+
+  @@index([email])
+}
+
+//////////////////////////////
+// ORDERS
+//////////////////////////////
+
+model Order {
+  id              String   @id @default(uuid())
+  orderNumber     String   @unique
+
+  customerId      String?
+  customer        Customer? @relation(fields: [customerId], references: [id])
+
+  customerName    String
+  email           String
+  phone           String
+
+  address         String   @db.Text
+  city            String
+  postalCode      String?
+
+  subtotal        Float
+  shipping        Float    @default(0)
+  tax             Float    @default(0)
+  total           Float
+
+  status          OrderStatus   @default(PENDING)
+  paymentMethod   String        @default("COD")
+  paymentStatus   PaymentStatus @default(UNPAID)
+
+  notes           String?  @db.Text
+  trackingNumber  String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  items           OrderItem[]
+
+  @@index([orderNumber])
+  @@index([email])
+  @@index([status])
+}
+
+//////////////////////////////
+// ORDER ITEMS
+//////////////////////////////
+
+model OrderItem {
+  id          String  @id @default(uuid())
+
+  orderId     String
+  productId   String?
+
+  // Snapshot fields (important)
+  productName String
+  price       Float
+  quantity    Int
+  size        String?
+  color       String?
+  image       String?
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+//////////////////////////////
+// REVIEWS
+//////////////////////////////
+
+model Review {
+  id          String   @id @default(uuid())
+  productId   String
+
+  userName    String
+  email       String?
+
+  rating      Int
+  comment     String   @db.Text
+
+  verified    Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+//////////////////////////////
+// WISHLIST
+//////////////////////////////
+
+model Wishlist {
+  id        String   @id @default(uuid())
+
+  email     String
+  productId String
+
+  addedAt   DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([email, productId])
+}
+
+//////////////////////////////
+// ADMIN USERS
+//////////////////////////////
+
+model User {
+  id        String   @id @default(uuid())
+
+  name      String
+  email     String   @unique
+  password  String
+
+  role      UserRole @default(ADMIN)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+//////////////////////////////
+// PASSWORD RESET
+//////////////////////////////
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+
+  email     String
+  token     String   @unique
+  tokenHash String   @unique
+
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+//////////////////////////////
+// COUPONS
+//////////////////////////////
+
+model Coupon {
+  id            String   @id @default(uuid())
+  code          String   @unique
+
+  description   String?
+
+  discountType  DiscountType
+  discountValue Float
+
+  maxUses       Int?
+  usedCount     Int      @default(0)
+
+  minAmount     Float    @default(0)
+
+  validFrom     DateTime
+  validUntil    DateTime
+
+  active        Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([code])
+}
+
+//////////////////////////////
+// ENUMS
+//////////////////////////////
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+}

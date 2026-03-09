@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-open-sans: 'Open Sans', sans-serif;
+  --bg-navy: #0a1a3a;
+  --bg-navy-light: #122852;
+  --bg-navy-elevated: #1a2f57;
+  --text-gold: #e6b97d;
+  --text-gold-strong: #f4c04d;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-open-sans);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(244, 192, 77, 0.12), transparent 45%),
+    radial-gradient(900px 500px at 90% 110%, rgba(230, 185, 125, 0.08), transparent 40%),
+    linear-gradient(180deg, #091731 0%, #0a1a3a 55%, #07142c 100%);
+  color: var(--text-gold);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--text-gold-strong);
+  letter-spacing: 0.01em;
+}
+
+p,
+span,
+li {
+  color: rgba(230, 185, 125, 0.92);
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(244, 192, 77, 0.3);
+  color: #fff7e6;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #102245;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-gold);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-gold-strong);
+}
+
+/* Smooth Animations */
+@layer utilities {
+  .transition-base {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .hover-scale {
+    @apply scale-105 transition-base;
+  }
+}
+
+/* Custom Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(to right, #0a1a3a 4%, #1a2f57 25%, #0a1a3a 36%);
+  background-size: 1000px 100%;
+}
+
+input,
+textarea,
+select {
+  background-color: var(--bg-navy-light);
+  color: var(--text-gold);
+  border-color: rgba(230, 185, 125, 0.35);
+}
+
+@layer components {
+  .gold-glass {
+    background: linear-gradient(160deg, rgba(26, 47, 87, 0.92), rgba(10, 26, 58, 0.92));
+    border: 1px solid rgba(230, 185, 125, 0.25);
+    box-shadow: 0 14px 38px rgba(2, 8, 24, 0.42);
+    backdrop-filter: blur(6px);
+  }
+
+  .gold-btn {
+    background: linear-gradient(135deg, #f4c04d 0%, #e6b97d 100%);
+    color: #0a1a3a;
+    border: 1px solid rgba(244, 192, 77, 0.7);
+    box-shadow: 0 10px 24px rgba(9, 23, 49, 0.45);
+  }
+
+  .gold-btn:hover {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+}
