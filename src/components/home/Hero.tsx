@@ -28,9 +28,27 @@ const Hero = () => {
           const suits = Array.isArray(json.media.suits) ? json.media.suits : []
           const videos = Array.isArray(json.media.videos) ? json.media.videos : []
 
+          let fallbackSuits: { secureUrl: string }[] = []
+          if (suits.length === 0) {
+            try {
+              const productsResponse = await fetch('/api/products?limit=20', { cache: 'no-store' })
+              const productsJson = await productsResponse.json()
+              if (productsJson.success && Array.isArray(productsJson.products)) {
+                fallbackSuits = productsJson.products
+                  .map((product: { images?: string[] }) => product.images?.[0])
+                  .filter((url: string | undefined) => typeof url === 'string' && url.length > 0)
+                  .map((secureUrl: string) => ({ secureUrl }))
+              }
+            } catch {
+              fallbackSuits = []
+            }
+          }
+
+          const finalSuits = suits.length > 0 ? suits : fallbackSuits
+
           setHeroMedia({
             logo: json.media.logo,
-            suits,
+            suits: finalSuits,
             videos,
             allAssets: json.media.allAssets,
           })
@@ -40,9 +58,9 @@ const Hero = () => {
             setCurrentVideoIndex(randomVideoIndex)
           }
 
-          if (suits.length > 0) {
-            const randomIndex = Math.floor(Math.random() * suits.length)
-            setSelectedSuitImage(suits[randomIndex].secureUrl)
+          if (finalSuits.length > 0) {
+            const randomIndex = Math.floor(Math.random() * finalSuits.length)
+            setSelectedSuitImage(finalSuits[randomIndex].secureUrl)
           } else {
             setSelectedSuitImage(null)
           }

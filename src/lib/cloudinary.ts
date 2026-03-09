@@ -1,11 +1,13 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryAsset, CloudinaryMediaPayload } from '@/types/cloudinaryMedia';
 
+const cleanEnv = (value?: string) => value?.trim().replace(/^['\"]|['\"]$/g, '')
+
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: cleanEnv(process.env.CLOUDINARY_CLOUD_NAME),
+  api_key: cleanEnv(process.env.CLOUDINARY_API_KEY),
+  api_secret: cleanEnv(process.env.CLOUDINARY_API_SECRET),
 });
 
 export default cloudinary;
@@ -43,41 +45,44 @@ function suitNumber(publicId: string): number {
 }
 
 async function listResources(resourceType: 'image' | 'video', prefix?: string) {
-  const resources: any[] = [];
-  let nextCursor: string | undefined;
+  try {
+    const resources: any[] = [];
+    let nextCursor: string | undefined;
 
-  do {
-    const params: any = {
-      type: 'upload',
-      max_results: 500,
-      resource_type: resourceType,
-      next_cursor: nextCursor,
-    };
-    
-    // Only add prefix if provided
-    if (prefix) {
-      params.prefix = prefix;
+    do {
+      const params: any = {
+        type: 'upload',
+        max_results: 500,
+        resource_type: resourceType,
+        next_cursor: nextCursor,
+      };
+
+      if (prefix) {
+        params.prefix = prefix;
+      }
+
+      const result = await cloudinary.api.resources(params);
+      resources.push(...(result.resources ?? []));
+      nextCursor = result.next_cursor;
+    } while (nextCursor);
+
+    console.log(`📁 Fetched ${resources.length} ${resourceType} resources${prefix ? ` from '${prefix}'` : ' (all folders)'}`);
+
+    if (resources.length > 0) {
+      console.log('📸 Sample public IDs:', resources.slice(0, 5).map(r => r.public_id));
     }
-    
-    const result = await cloudinary.api.resources(params);
-    resources.push(...(result.resources ?? []));
-    nextCursor = result.next_cursor;
-  } while (nextCursor);
 
-  console.log(`📁 Fetched ${resources.length} ${resourceType} resources${prefix ? ` from '${prefix}'` : ' (all folders)'}`);
-  
-  // Debug: Log first few public IDs to see folder structure
-  if (resources.length > 0) {
-    console.log('📸 Sample public IDs:', resources.slice(0, 5).map(r => r.public_id));
+    return resources;
+  } catch (error) {
+    console.error(`❌ Cloudinary ${resourceType} fetch failed:`, error)
+    return []
   }
-
-  return resources;
 }
 
 export async function getDynamicMediaLibrary(): Promise<CloudinaryMediaPayload> {
   const sourcePrefixes = ['sappura'];
 
-  // Fetch all resources since they are at root level
+  // Fetch all resources (this account stores Sappura media at root-level public_ids)
   console.log('🔍 Fetching all Cloudinary resources...');
   const imageResources = await listResources('image');
   const videoResources = await listResources('video');
@@ -86,33 +91,29 @@ export async function getDynamicMediaLibrary(): Promise<CloudinaryMediaPayload> 
     ...imageResources.map((resource) => toAsset(resource, 'image')),
     ...videoResources.map((resource) => toAsset(resource, 'video')),
   ]
-  // Filter to exclude unwanted projects (humsafar, etc.) but keep Sappura files
+  // Filter to exclude unwanted projects/samples
   .filter((asset) => {
     const publicId = asset.publicId.toLowerCase();
-    
-    // Exclude these patterns (case-insensitive)
+
     const excludePatterns = [
-      'humsafar',     // Humsafar project
-      'afghani',      // Afghani project
-      'baba',         // Baba project
-      'zeesy',        // Zeesy project
-      'test',         // Test files
-      'sample',       // Sample files
-      'demo',         // Demo files
-      'cld-sample',   // Cloudinary samples
-      'samples/',     // Samples folder
-      'temp',         // Temporary files
-      'draft',        // Draft files
+      'humsafar',
+      'afghani',
+      'baba',
+      'zeesy',
+      'test',
+      'sample',
+      'demo',
+      'cld-sample',
+      'samples/',
+      'temp',
+      'draft',
     ];
-    
+
     const shouldExclude = excludePatterns.some(pattern => publicId.includes(pattern));
-    
     if (shouldExclude) {
-      console.log('🚫 Filtered out:', asset.publicId);
       return false;
     }
-    
-    // Accept all other files (Sappura jewelry, clothing, accessories, etc.)
+
     return true;
   })
   .sort((a, b) => {

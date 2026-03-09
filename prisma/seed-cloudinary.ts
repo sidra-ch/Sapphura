@@ -13,6 +13,11 @@ cloudinary.config({
 
 const { Pool } = pg
 
+type CloudinaryImage = {
+  publicId: string
+  secureUrl: string
+}
+
 // Create PostgreSQL connection pool
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:123456@localhost:5432/Sappuradb'
 const pool = new Pool({ connectionString })
@@ -24,17 +29,21 @@ const prisma = new PrismaClient({ adapter })
 // Fetch Cloudinary images
 async function getCloudinaryImages() {
   try {
-    let allImages: string[] = []
+    let allImages: CloudinaryImage[] = []
     let nextCursor = ''
 
     do {
       const result = await cloudinary.api.resources({
+        type: 'upload',
         max_results: 500,
         resource_type: 'image',
         next_cursor: nextCursor,
       })
 
-      const imageUrls = result.resources.map((r: any) => r.secure_url)
+      const imageUrls = result.resources.map((r: any) => ({
+        publicId: r.public_id,
+        secureUrl: r.secure_url,
+      }))
       allImages = allImages.concat(imageUrls)
       nextCursor = result.next_cursor
     } while (nextCursor)
@@ -48,33 +57,36 @@ async function getCloudinaryImages() {
 }
 
 // Group images by collection type
-function categorizeImages(images: string[]) {
+function categorizeImages(images: CloudinaryImage[]) {
   const categories = {
-    suits: images.filter(img => img.toLowerCase().includes('suit')),
-    winterCollection: images.filter(img => img.toLowerCase().includes('winter')),
-    summerCollection: images.filter(img => img.toLowerCase().includes('summer')),
-    newCollection: images.filter(img => img.toLowerCase().includes('newcollection')),
-    necklaces: images.filter(img => img.toLowerCase().includes('neckle')),
-    bangles: images.filter(img => img.toLowerCase().includes('banga')),
-    earrings: images.filter(img => img.toLowerCase().includes('earing')),
-    bracelets: images.filter(img => img.toLowerCase().includes('bracelet')),
-    clothes: images.filter(img => img.toLowerCase().includes('cloth')),
-    accessories: images.filter(img => img.toLowerCase().includes('accessories')),
-    makeup: images.filter(img => img.toLowerCase().includes('make-up')),
-    logo: images.filter(img => img.toLowerCase().includes('logo')),
+    suits: images.filter(img => img.publicId.toLowerCase().includes('suit')),
+    winterCollection: images.filter(img => img.publicId.toLowerCase().includes('winter')),
+    summerCollection: images.filter(img => img.publicId.toLowerCase().includes('summer')),
+    newCollection: images.filter(img => img.publicId.toLowerCase().includes('newcollection') || img.publicId.toLowerCase().includes('new-collection')),
+    necklaces: images.filter(img => img.publicId.toLowerCase().includes('neckle')),
+    bangles: images.filter(img => img.publicId.toLowerCase().includes('banga')),
+    earrings: images.filter(img => img.publicId.toLowerCase().includes('earing') || img.publicId.toLowerCase().includes('earring')),
+    bracelets: images.filter(img => img.publicId.toLowerCase().includes('bracelet')),
+    clothes: images.filter(img => img.publicId.toLowerCase().includes('cloth')),
+    accessories: images.filter(img => img.publicId.toLowerCase().includes('accessories')),
+    makeup: images.filter(img => img.publicId.toLowerCase().includes('make-up') || img.publicId.toLowerCase().includes('makeup')),
+    logo: images.filter(img => img.publicId.toLowerCase().includes('logo')),
     other: images.filter(img => 
-      !img.toLowerCase().includes('suit') &&
-      !img.toLowerCase().includes('winter') &&
-      !img.toLowerCase().includes('summer') &&
-      !img.toLowerCase().includes('newcollection') &&
-      !img.toLowerCase().includes('neckle') &&
-      !img.toLowerCase().includes('banga') &&
-      !img.toLowerCase().includes('earing') &&
-      !img.toLowerCase().includes('bracelet') &&
-      !img.toLowerCase().includes('cloth') &&
-      !img.toLowerCase().includes('accessories') &&
-      !img.toLowerCase().includes('make-up') &&
-      !img.toLowerCase().includes('logo')
+      !img.publicId.toLowerCase().includes('suit') &&
+      !img.publicId.toLowerCase().includes('winter') &&
+      !img.publicId.toLowerCase().includes('summer') &&
+      !img.publicId.toLowerCase().includes('newcollection') &&
+      !img.publicId.toLowerCase().includes('new-collection') &&
+      !img.publicId.toLowerCase().includes('neckle') &&
+      !img.publicId.toLowerCase().includes('banga') &&
+      !img.publicId.toLowerCase().includes('earing') &&
+      !img.publicId.toLowerCase().includes('earring') &&
+      !img.publicId.toLowerCase().includes('bracelet') &&
+      !img.publicId.toLowerCase().includes('cloth') &&
+      !img.publicId.toLowerCase().includes('accessories') &&
+      !img.publicId.toLowerCase().includes('make-up') &&
+      !img.publicId.toLowerCase().includes('makeup') &&
+      !img.publicId.toLowerCase().includes('logo')
     )
   }
   
@@ -92,7 +104,8 @@ async function main() {
     return
   }
 
-  const categorizedImages = categorizeImages(cloudinaryImages)
+  const validProductImages = cloudinaryImages.filter((image) => !image.publicId.toLowerCase().includes('logo'))
+  const categorizedImages = categorizeImages(validProductImages)
 
   console.log('\n📊 Image Categories:')
   console.log(`  Suits: ${categorizedImages.suits.length}`)
@@ -119,6 +132,7 @@ async function main() {
     { name: 'Winter Collection', slug: 'winter-collection', description: 'Winter season jewelry collection' },
     { name: 'Summer Collection', slug: 'summer-collection', description: 'Summer season jewelry collection' },
     { name: 'New Arrivals', slug: 'new-arrivals', description: 'Latest collection' },
+    { name: 'Makeup', slug: 'makeup', description: 'Beauty and makeup collection' },
   ]
 
   console.log('📂 Creating categories...')
@@ -131,170 +145,191 @@ async function main() {
   }
   console.log(`✅ Created ${categories.length} categories\n`)
 
+  const titleFromPublicId = (publicId: string) =>
+    publicId
+      .replace(/_[a-z0-9]{6}$/i, '')
+      .replace(/[-_\/]+/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+
+  const slugFromPublicId = (publicId: string) =>
+    publicId
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+
+  const createCategoryProducts = async (
+    images: CloudinaryImage[],
+    categoryName: string,
+    basePrice: number,
+    originalDelta: number,
+    sizes: string[],
+    colorMap: Record<string, string>,
+    featureSet: string[]
+  ) => {
+    for (const image of images) {
+      const name = titleFromPublicId(image.publicId)
+      const slug = slugFromPublicId(image.publicId)
+
+      await prisma.product.upsert({
+        where: { slug },
+        update: {
+          name,
+          description: `${name} from Sappura Cloudinary collection with premium quality and elegant finishing.`,
+          price: basePrice,
+          originalPrice: basePrice + originalDelta,
+          category: categoryName,
+          images: [image.secureUrl],
+          sizes,
+          colors: colorMap,
+          stock: 20,
+          inStock: true,
+          rating: 4.8,
+          features: featureSet,
+        },
+        create: {
+          name,
+          slug,
+          description: `${name} from Sappura Cloudinary collection with premium quality and elegant finishing.`,
+          price: basePrice,
+          originalPrice: basePrice + originalDelta,
+          category: categoryName,
+          images: [image.secureUrl],
+          sizes,
+          colors: colorMap,
+          stock: 20,
+          inStock: true,
+          rating: 4.8,
+          features: featureSet,
+        }
+      })
+      productCount++
+    }
+  }
+
   // Create Products from Cloudinary images
   console.log('💍 Creating products from Cloudinary images...\n')
 
   let productCount = 0
 
-  // Winter Collection Products
-  for (let i = 0; i < categorizedImages.winterCollection.length; i++) {
-    const imageUrl = categorizedImages.winterCollection[i]
-    await prisma.product.create({
-      data: {
-        name: `Winter Collection Item ${i + 1}`,
-        slug: `winter-collection-${i + 1}`,
-        description: 'Beautiful winter season jewelry piece with elegant design perfect for the season.',
-        price: 2999 + (i * 500),
-        originalPrice: 3999 + (i * 500),
-        category: 'Winter Collection',
-        images: [imageUrl],
-        sizes: ['Standard'],
-        colors: { gold: '#FFD700', silver: '#C0C0C0' },
-        stock: 20,
-        inStock: true,
-        rating: 4.5 + (Math.random() * 0.5),
-        features: ['Premium Quality', 'Winter Collection', 'Elegant Design'],
-      }
-    })
-    productCount++
-  }
+  await createCategoryProducts(
+    categorizedImages.winterCollection,
+    'Winter Collection',
+    4299,
+    1200,
+    ['Standard'],
+    { gold: '#FFD700', silver: '#C0C0C0' },
+    ['Winter Collection', 'Premium Finish', 'Seasonal Favorite']
+  )
 
-  // Summer Collection Products
-  for (let i = 0; i < categorizedImages.summerCollection.length; i++) {
-    const imageUrl = categorizedImages.summerCollection[i]
-    await prisma.product.create({
-      data: {
-        name: `Summer Collection Item ${i + 1}`,
-        slug: `summer-collection-${i + 1}`,
-        description: 'Elegant summer season jewelry piece with light and fresh design.',
-        price: 2499 + (i * 400),
-        originalPrice: 3499 + (i * 400),
-        category: 'Summer Collection',
-        images: [imageUrl],
-        sizes: ['Standard'],
-        colors: { gold: '#FFD700', rose: '#B76E79' },
-        stock: 25,
-        inStock: true,
-        rating: 4.6 + (Math.random() * 0.4),
-        features: ['Summer Collection', 'Lightweight', 'Fresh Design'],
-      }
-    })
-    productCount++
-  }
+  await createCategoryProducts(
+    categorizedImages.summerCollection,
+    'Summer Collection',
+    3499,
+    1000,
+    ['Standard'],
+    { gold: '#FFD700', rose: '#B76E79' },
+    ['Summer Collection', 'Lightweight', 'Elegant Design']
+  )
 
-  // Suits Products
-  for (let i = 0; i < Math.min(categorizedImages.suits.length, 15); i++) {
-    const imageUrl = categorizedImages.suits[i]
-    await prisma.product.create({
-      data: {
-        name: `Designer Suit ${i + 1}`,
-        slug: `suit-${i + 1}`,
-        description: 'Stunning embroidered suit with intricate work. Perfect for formal occasions and weddings.',
-        price: 3999 + (i * 600),
-        originalPrice: 5499 + (i * 600),
-        category: 'Clothing',
-        images: [imageUrl],
-        sizes: ['S', 'M', 'L', 'XL'],
-        colors: { maroon: '#800000', emerald: '#50C878', blue: '#0F52BA' },
-        stock: 15,
-        inStock: true,
-        rating: 4.7 + (Math.random() * 0.3),
-        features: ['Premium Embroidery', 'Traditional Design', 'Party Wear'],
-      }
-    })
-    productCount++
-  }
+  await createCategoryProducts(
+    categorizedImages.newCollection,
+    'New Arrivals',
+    3899,
+    900,
+    ['Standard'],
+    { gold: '#FFD700', champagne: '#F7E7CE' },
+    ['New Arrival', 'Trending', 'Premium Quality']
+  )
 
-  // Necklaces
-  for (let i = 0; i < categorizedImages.necklaces.length; i++) {
-    const imageUrl = categorizedImages.necklaces[i]
-    await prisma.product.create({
-      data: {
-        name: `Necklace Set ${i + 1}`,
-        slug: `necklace-set-${i + 1}`,
-        description: 'Beautiful necklace set with elegant design perfect for special occasions.',
-        price: 4499 + (i * 700),
-        originalPrice: 6499 + (i * 700),
-        category: 'Necklaces',
-        images: [imageUrl],
-        sizes: ['Standard'],
-        colors: { gold: '#FFD700' },
-        stock: 12,
-        inStock: true,
-        rating: 4.8 + (Math.random() * 0.2),
-        features: ['Gold Plated', 'Party Wear', 'Premium Design'],
-      }
-    })
-    productCount++
-  }
+  await createCategoryProducts(
+    categorizedImages.suits,
+    'Clothing',
+    4599,
+    1300,
+    ['S', 'M', 'L', 'XL'],
+    { maroon: '#800000', emerald: '#50C878', blue: '#0F52BA' },
+    ['Designer Suit', 'Premium Fabric', 'Formal Wear']
+  )
 
-  // Bangles
-  for (let i = 0; i < categorizedImages.bangles.length; i++) {
-    const imageUrl = categorizedImages.bangles[i]
-    await prisma.product.create({
-      data: {
-        name: `Bangles Set ${i + 1}`,
-        slug: `bangles-set-${i + 1}`,
-        description: 'Elegant bangles set with beautiful traditional design.',
-        price: 1999 + (i * 300),
-        originalPrice: 2999 + (i * 300),
-        category: 'Bangles',
-        images: [imageUrl],
-        sizes: ['2.4', '2.6', '2.8'],
-        colors: { gold: '#FFD700', silver: '#C0C0C0' },
-        stock: 30,
-        inStock: true,
-        rating: 4.6 + (Math.random() * 0.4),
-        features: ['Set of Multiple Bangles', 'Traditional Design', 'Party Wear'],
-      }
-    })
-    productCount++
-  }
+  await createCategoryProducts(
+    categorizedImages.necklaces,
+    'Necklaces',
+    4899,
+    1400,
+    ['Standard'],
+    { gold: '#FFD700' },
+    ['Necklace Set', 'Party Wear', 'Elegant Craftsmanship']
+  )
 
-  // Earrings
-  for (let i = 0; i < categorizedImages.earrings.length; i++) {
-    const imageUrl = categorizedImages.earrings[i]
-    await prisma.product.create({
-      data: {
-        name: `Designer Earrings ${i + 1}`,
-        slug: `earrings-${i + 1}`,
-        description: 'Beautiful designer earrings with elegant craftsmanship.',
-        price: 1499 + (i * 200),
-        originalPrice: 2499 + (i * 200),
-        category: 'Earrings',
-        images: [imageUrl],
-        sizes: ['Standard'],
-        colors: { gold: '#FFD700' },
-        stock: 25,
-        inStock: true,
-        rating: 4.7 + (Math.random() * 0.3),
-        features: ['Lightweight', 'Elegant Design', 'Comfortable'],
-      }
-    })
-    productCount++
-  }
+  await createCategoryProducts(
+    categorizedImages.bangles,
+    'Bangles',
+    2599,
+    900,
+    ['2.4', '2.6', '2.8'],
+    { gold: '#FFD700', silver: '#C0C0C0' },
+    ['Traditional Design', 'Festival Wear', 'Comfort Fit']
+  )
 
-  // Bracelets
-  for (let i = 0; i < categorizedImages.bracelets.length; i++) {
-    const imageUrl = categorizedImages.bracelets[i]
-    await prisma.product.create({
-      data: {
-        name: `Bracelet ${i + 1}`,
-        slug: `bracelet-${i + 1}`,
-        description: 'Stylish bracelet with modern design.',
-        price: 1799 + (i * 250),
-        category: 'Accessories',
-        images: [imageUrl],
-        sizes: ['Standard'],
-        colors: { gold: '#FFD700', silver: '#C0C0C0' },
-        stock: 20,
-        inStock: true,
-        rating: 4.5 + (Math.random() * 0.5),
-        features: ['Adjustable', 'Modern Design', 'Daily Wear'],
-      }
-    })
-    productCount++
-  }
+  await createCategoryProducts(
+    categorizedImages.earrings,
+    'Earrings',
+    1899,
+    700,
+    ['Standard'],
+    { gold: '#FFD700' },
+    ['Lightweight', 'Elegant Look', 'Daily & Party Wear']
+  )
+
+  await createCategoryProducts(
+    categorizedImages.bracelets,
+    'Accessories',
+    2099,
+    700,
+    ['Standard'],
+    { gold: '#FFD700', silver: '#C0C0C0' },
+    ['Adjustable', 'Modern Design', 'Gift Friendly']
+  )
+
+  await createCategoryProducts(
+    categorizedImages.clothes,
+    'Clothing',
+    4399,
+    1100,
+    ['S', 'M', 'L', 'XL'],
+    { maroon: '#800000', emerald: '#50C878', blue: '#0F52BA' },
+    ['Traditional Wear', 'Premium Collection', 'Festive Style']
+  )
+
+  await createCategoryProducts(
+    categorizedImages.accessories,
+    'Accessories',
+    2499,
+    800,
+    ['Standard'],
+    { gold: '#FFD700', black: '#1f2937' },
+    ['Accessorized Look', 'Premium Quality', 'Trendy']
+  )
+
+  await createCategoryProducts(
+    categorizedImages.makeup,
+    'Makeup',
+    1799,
+    500,
+    ['Standard'],
+    { rose: '#B76E79', nude: '#E3BC9A' },
+    ['Beauty Collection', 'Daily Use', 'Premium Formula']
+  )
+
+  await createCategoryProducts(
+    categorizedImages.other,
+    'New Arrivals',
+    3299,
+    900,
+    ['Standard'],
+    { gold: '#FFD700', silver: '#C0C0C0' },
+    ['Sappura Collection', 'Latest Drop', 'Premium Quality']
+  )
 
   console.log(`\n✅ Database seeded successfully!`)
   console.log(`📦 Created ${categories.length} categories`)

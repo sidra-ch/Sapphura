@@ -69,13 +69,6 @@ export default function LoginPage() {
                         </p>
                       </div>
 
-                      <div className="mt-4 text-center">
-            <p className="text-sm text-primary/60">
-              Demo Credentials: <br />
-              <span className="text-primary font-mono">admin@sappura.com / admin123</span>
-            </p>
-          </div>
-
           <div className="mt-4 text-center">
             <Link href="/" className="text-sm text-primary/70 hover:text-primary transition-colors">
               ← Back to Store

@@ -88,6 +88,17 @@ export async function POST(request: Request) {
       )
     }
 
+    if (error instanceof Error && (
+      error.message.includes('P1001') ||
+      error.message.includes('DatabaseNotReachable') ||
+      error.message.includes('Can\'t reach database server')
+    )) {
+      return NextResponse.json(
+        { success: false, error: 'Database is not configured for production. Please set DATABASE_URL in Vercel environment variables.' },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json(
       { success: false, error: 'An error occurred during login' },
       { status: 500 }

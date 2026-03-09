@@ -47,41 +47,79 @@ export async function GET(
   try {
     const { id } = params
 
-    const product = await prisma.product.findFirst({
-      where: {
-        OR: [{ id }, { slug: id }],
-      },
-      include: {
-        reviews: true,
-      },
-    })
+    let product: any = null
+    let relatedProductsFromDb: any[] = []
 
-    if (product) {
-      const relatedProducts = await prisma.product.findMany({
+    try {
+      product = await prisma.product.findFirst({
         where: {
-          category: product.category,
-          NOT: { id: product.id },
+          OR: [{ id }, { slug: id }],
         },
-        take: 4,
-        orderBy: { createdAt: 'desc' },
+        include: {
+          reviews: true,
+        },
       })
 
+      if (product) {
+        relatedProductsFromDb = await prisma.product.findMany({
+          where: {
+            category: product.category,
+            NOT: { id: product.id },
+          },
+          take: 4,
+          orderBy: { createdAt: 'desc' },
+        })
+      }
+    } catch (dbError) {
+      console.error('Database lookup failed in product detail API:', dbError)
+    }
+
+    if (product) {
       return NextResponse.json({
         success: true,
         product,
-        relatedProducts,
+        relatedProducts: relatedProductsFromDb,
         source: 'database',
       })
     }
 
+    const normalize = (value: string) => {
+      try {
+        return decodeURIComponent(value).toLowerCase()
+      } catch {
+        return value.toLowerCase()
+      }
+    }
+
+    const basename = (value: string) => {
+      const normalized = normalize(value)
+      const parts = normalized.split('/')
+      return parts[parts.length - 1] || normalized
+    }
+
     const requestedId = decodeURIComponent(id)
+    const normalizedRequested = normalize(id)
+    const requestedBasename = basename(id)
+
     const media = await getDynamicMediaLibrary()
     const cloudinaryProducts = toCatalogProducts(
       media.allAssets.filter((asset) => asset.resourceType === 'image')
     )
 
     const target = cloudinaryProducts.find(
-      (item) => item.publicId.toLowerCase() === requestedId.toLowerCase() || item.slug.toLowerCase() === id.toLowerCase()
+      (item) => {
+        const normalizedPublicId = normalize(item.publicId)
+        const normalizedSlug = normalize(item.slug)
+        const publicIdBasename = basename(item.publicId)
+        const slugBasename = basename(item.slug)
+
+        return (
+          normalizedPublicId === normalizedRequested ||
+          normalizedSlug === normalizedRequested ||
+          publicIdBasename === requestedBasename ||
+          slugBasename === requestedBasename
+        )
+      }
     )
 
     if (!target) {

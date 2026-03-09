@@ -138,11 +138,13 @@ export default async function CollectionDetailsPage({ params }: CollectionPagePr
                 className="gold-glass rounded-2xl overflow-hidden hover:-translate-y-1 transition-transform duration-300"
               >
                 <div className="aspect-[4/3] bg-navy-light overflow-hidden">
-                  <img
+                  <Image
                     src={product.images[0]}
                     alt={product.name}
+                    width={800}
+                    height={600}
                     className="w-full h-full object-cover"
-                    loading="lazy"
+                    unoptimized
                   />
                 </div>
                 <div className="p-5">
