@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getAuthUserFromRequest, isAdminRole } from '@/lib/auth-utils'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const authUser = getAuthUserFromRequest(request)
+    if (!authUser || !isAdminRole(authUser.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     // Get total products
     const totalProducts = await prisma.product.count()
 

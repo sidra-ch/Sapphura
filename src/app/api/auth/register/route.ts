@@ -7,6 +7,13 @@ import { validationError, rateLimitResponse } from '@/lib/api-response'
 
 export async function POST(request: Request) {
   try {
+    if (process.env.ALLOW_ADMIN_REGISTRATION !== 'true') {
+      return NextResponse.json(
+        { success: false, error: 'Registration is disabled' },
+        { status: 403 }
+      )
+    }
+
     // Rate limiting by IP
     const ip = request.headers.get('x-forwarded-for') || 
                request.headers.get('x-real-ip') || 
@@ -47,7 +54,7 @@ export async function POST(request: Request) {
         name,
         email,
         password: hashedPassword,
-        role: 'admin'
+        role: 'ADMIN'
       }
     })
 

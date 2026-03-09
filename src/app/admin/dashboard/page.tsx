@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -44,12 +44,7 @@ export default function AdminDashboard() {
     totalCustomers: 0,
   })
 
-  useEffect(() => {
-    checkAuth()
-    fetchStats()
-  }, [])
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/session')
       const data = await response.json()
@@ -64,9 +59,9 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/stats')
       const data = await response.json()
@@ -76,7 +71,12 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Failed to fetch stats:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    checkAuth()
+    fetchStats()
+  }, [checkAuth, fetchStats])
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })

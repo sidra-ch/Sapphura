@@ -50,7 +50,11 @@ export function getGatewayInfo(method: OnlinePaymentMethod): PaymentGatewayInfo 
 }
 
 function getPaymentSecret() {
-  return process.env.PAYMENT_SESSION_SECRET || 'dev-payment-session-secret'
+  const secret = process.env.PAYMENT_SESSION_SECRET
+  if (!secret) {
+    throw new Error('PAYMENT_SESSION_SECRET is not configured')
+  }
+  return secret
 }
 
 export function createPaymentToken(input: {

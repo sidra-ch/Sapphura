@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadImage } from '@/lib/cloudinary';
+import { getAuthUserFromRequest, isAdminRole } from '@/lib/auth-utils';
 
 export async function POST(request: NextRequest) {
   try {
+    const authUser = getAuthUserFromRequest(request);
+    if (!authUser || !isAdminRole(authUser.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const folder = formData.get('folder') as string || 'sappura/products';
@@ -10,6 +19,13 @@ export async function POST(request: NextRequest) {
     if (!file) {
       return NextResponse.json(
         { success: false, error: 'No file provided' },
+        { status: 400 }
+      );
+    }
+
+    if (!file.type?.startsWith('image/')) {
+      return NextResponse.json(
+        { success: false, error: 'Only image uploads are allowed' },
         { status: 400 }
       );
     }
@@ -50,6 +66,14 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const authUser = getAuthUserFromRequest(request);
+    if (!authUser || !isAdminRole(authUser.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { publicId } = await request.json();
 
     if (!publicId) {

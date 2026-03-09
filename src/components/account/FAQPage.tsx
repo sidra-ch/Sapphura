@@ -254,7 +254,7 @@ export default function FAQPage({ initialCategory = 'all' }: FAQPageProps) {
           >
             <h2 className="text-2xl font-bold text-primary mb-4">Still need help?</h2>
             <p className="text-primary/70 mb-8 max-w-xl mx-auto">
-              Can't find the answer you're looking for? Please contact our support team. We're here to help!
+              Can&apos;t find the answer you&apos;re looking for? Please contact our support team. We&apos;re here to help!
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">

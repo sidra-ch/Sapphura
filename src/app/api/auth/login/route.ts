@@ -73,6 +73,21 @@ export async function POST(request: Request) {
     return response
   } catch (error) {
     console.error('Login error:', error)
+
+    if (error instanceof Error && error.message.includes('JWT_SECRET')) {
+      return NextResponse.json(
+        { success: false, error: 'Server auth is not configured. Please set JWT_SECRET in environment variables.' },
+        { status: 500 }
+      )
+    }
+
+    if (error instanceof Error && error.message.includes('.prisma/client')) {
+      return NextResponse.json(
+        { success: false, error: 'Prisma client is not generated. Run: npm run db:generate' },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json(
       { success: false, error: 'An error occurred during login' },
       { status: 500 }

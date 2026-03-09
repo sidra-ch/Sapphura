@@ -78,7 +78,7 @@ export default function OrderConfirmation(props: OrderConfirmationProps = {}) {
           >
             <CheckCircle size={80} className="text-green-500" />
           </motion.div>
-          <h1 className="text-4xl font-bold text-primary mb-3 mb-2">Order Confirmed!</h1>
+          <h1 className="text-4xl font-bold text-primary mb-2">Order Confirmed!</h1>
           <p className="text-primary/70 text-lg">
             Thank you for your purchase. Your order has been successfully placed.
           </p>
@@ -255,7 +255,7 @@ export default function OrderConfirmation(props: OrderConfirmationProps = {}) {
           transition={{ delay: 0.8 }}
           className="mt-12 text-center text-primary/70"
         >
-          <p className="mb-3">Need help? We're here to assist you!</p>
+          <p className="mb-3">Need help? We&apos;re here to assist you!</p>
           <div className="flex items-center justify-center gap-4">
             <a href="mailto:support@sappura.com" className="flex items-center gap-2 hover:text-primary transition-colors">
               <Mail size={18} />

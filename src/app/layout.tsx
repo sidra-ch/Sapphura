@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   description: 'Sappura | Artificial Jewellery in Pakistan #1 Jewellery Brand. Bridal, Bangles, Anklets, Earrings, Necklace, Rings, for Engagement, Marriage & Parties',
   keywords: 'artificial jewellery, jewellery pakistan, bridal jewellery, bangles, earrings, necklace, rings, anklets',
   icons: {
-    icon: 'https://res.cloudinary.com/dymlqxnd7/image/upload/v1710134400/Sappura%20Assets/logo_cbumex.png',
-    apple: 'https://res.cloudinary.com/dymlqxnd7/image/upload/v1710134400/Sappura%20Assets/logo_cbumex.png',
+    icon: 'https://res.cloudinary.com/dwmxdyvd2/image/upload/v1773004790/logo-1_gzmux1.png',
+    apple: 'https://res.cloudinary.com/dwmxdyvd2/image/upload/v1773004790/logo-1_gzmux1.png',
   },
 }
 

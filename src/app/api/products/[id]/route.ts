@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getDynamicMediaLibrary } from '@/lib/cloudinary'
 import { toCatalogProducts } from '@/lib/cloudinary-catalog'
+import { getAuthUserFromRequest, isAdminRole } from '@/lib/auth-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,14 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const authUser = getAuthUserFromRequest(request)
+    if (!authUser || !isAdminRole(authUser.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const { id } = params
 
     await prisma.product.delete({
@@ -110,6 +119,14 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const authUser = getAuthUserFromRequest(request)
+    if (!authUser || !isAdminRole(authUser.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const { id } = params
     const body = await request.json()
 

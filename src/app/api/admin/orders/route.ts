@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getAuthUserFromRequest, isAdminRole } from '@/lib/auth-utils'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   try {
+    const authUser = getAuthUserFromRequest(request)
+    if (!authUser || !isAdminRole(authUser.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')

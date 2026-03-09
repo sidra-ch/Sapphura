@@ -300,21 +300,6 @@ const Hero = () => {
               </div>
             </motion.div>
 
-            <motion.div
-              animate={{ y: [0, 15, 0], rotate: [0, -5, 0] }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.5
-              }}
-              className="absolute -bottom-6 -left-6 gold-glass p-4 rounded-2xl"
-            >
-              <div className="text-center">
-                <p className="text-sm text-primary/75">Cash on</p>
-                <p className="font-bold text-accent">Delivery</p>
-              </div>
-            </motion.div>
           </motion.div>
         </div>
       </div>

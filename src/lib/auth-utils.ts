@@ -1,8 +1,33 @@
 import bcryptjs from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+const JWT_SECRET = process.env.JWT_SECRET
 const PASSWORD_SALT_ROUNDS = 10
+
+function getJwtSecret(): string {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured')
+  }
+  return JWT_SECRET
+}
+
+export type AuthUser = {
+  id: string
+  email: string
+  role: string
+  name: string
+}
+
+export function isAdminRole(role?: string | null): boolean {
+  return String(role || '').toUpperCase() === 'ADMIN'
+}
+
+export function getAuthUserFromRequest(request: Request): AuthUser | null {
+  const cookieHeader = request.headers.get('cookie') || undefined
+  const token = extractTokenFromCookie(cookieHeader)
+  if (!token) return null
+  return verifyToken(token)
+}
 
 /**
  * Hash a password using bcryptjs
@@ -40,7 +65,7 @@ export function createToken(payload: {
   name: string
 }): string {
   try {
-    return jwt.sign(payload, JWT_SECRET, {
+    return jwt.sign(payload, getJwtSecret(), {
       expiresIn: '7days',
       algorithm: 'HS256'
     })
@@ -59,7 +84,7 @@ export function verifyToken(token: string): {
   name: string
 } | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
+    const decoded = jwt.verify(token, getJwtSecret(), {
       algorithms: ['HS256']
     }) as {
       id: string

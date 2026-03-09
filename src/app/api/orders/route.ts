@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { sendEmail, generateOrderConfirmationEmail } from '@/lib/email-service'
+import { getAuthUserFromRequest, isAdminRole } from '@/lib/auth-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -184,15 +185,30 @@ export async function POST(request: Request) {
 // GET /api/orders - Get orders (with optional email filter)
 export async function GET(request: Request) {
   try {
+    const authUser = getAuthUserFromRequest(request)
+    const isAdmin = !!authUser && isAdminRole(authUser.role)
+
     const { searchParams } = new URL(request.url)
     const email = searchParams.get('email')
     const orderNumber = searchParams.get('orderNumber')
 
-    const where = email 
-      ? { email }
-      : orderNumber
-      ? { orderNumber }
-      : {}
+    let where: any = {}
+
+    if (isAdmin) {
+      where = email
+        ? { email }
+        : orderNumber
+          ? { orderNumber }
+          : {}
+    } else {
+      if (!email || !orderNumber) {
+        return NextResponse.json(
+          { success: false, error: 'Email and order number are required' },
+          { status: 400 }
+        )
+      }
+      where = { email, orderNumber }
+    }
 
     const orders = await prisma.order.findMany({
       where,

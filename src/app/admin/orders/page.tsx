@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import Modal from '@/components/ui/Modal'
@@ -47,7 +47,7 @@ export default function AdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showModal, setShowModal] = useState(false)
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
@@ -65,11 +65,11 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [search, status, paymentStatus, page])
 
   useEffect(() => {
     fetchOrders()
-  }, [page, status, paymentStatus])
+  }, [fetchOrders])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

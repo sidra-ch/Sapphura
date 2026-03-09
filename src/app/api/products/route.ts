@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getDynamicMediaLibrary } from '@/lib/cloudinary'
 import { toCatalogProducts } from '@/lib/cloudinary-catalog'
+import { getAuthUserFromRequest, isAdminRole } from '@/lib/auth-utils'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -76,6 +77,14 @@ export async function GET(request: Request) {
 // POST /api/products - Create a product
 export async function POST(request: Request) {
   try {
+    const authUser = getAuthUserFromRequest(request)
+    if (!authUser || !isAdminRole(authUser.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const {
       name,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
@@ -17,7 +17,7 @@ const priceRanges = [
   { label: 'Above Rs. 10000', min: 10000, max: Infinity },
 ];
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   
@@ -248,5 +248,13 @@ export default function SearchPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen pt-24 pb-16 px-4" />}>
+      <SearchPageContent />
+    </Suspense>
   );
 }

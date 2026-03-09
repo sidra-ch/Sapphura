@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
+import { getAuthUserFromRequest, isAdminRole } from '@/lib/auth-utils'
 
 const updateOrderSchema = z.object({
   status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED']),
@@ -13,6 +14,14 @@ export async function GET(
   { params }: { params: { orderNumber: string } }
 ) {
   try {
+    const authUser = getAuthUserFromRequest(request)
+    if (!authUser || !isAdminRole(authUser.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const order = await prisma.order.findUnique({
       where: { orderNumber: params.orderNumber },
       include: { items: true }
@@ -43,6 +52,14 @@ export async function PATCH(
   { params }: { params: { orderNumber: string } }
 ) {
   try {
+    const authUser = getAuthUserFromRequest(request)
+    if (!authUser || !isAdminRole(authUser.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
 
     // Validate input

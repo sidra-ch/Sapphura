@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ShoppingCart, Menu, Search, User, Heart } from 'lucide-react'
+import { ShoppingCart, Menu, Search, User, Heart, Shield } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import Navbar from '@/components/navigation/Navbar'
 import MobileMenu from '@/components/navigation/MobileMenu'
@@ -17,6 +17,7 @@ const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isMegaOpen, setIsMegaOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
   const cartItems = useCartStore((state) => state.items)
   const router = useRouter()
 
@@ -26,6 +27,20 @@ const Header = () => {
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const checkAdminSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session', { cache: 'no-store' })
+        const data = await response.json()
+        setIsAdminAuthenticated(Boolean(data?.success))
+      } catch {
+        setIsAdminAuthenticated(false)
+      }
+    }
+
+    checkAdminSession()
   }, [])
 
   const handleSearch = (e: React.FormEvent) => {
@@ -58,7 +73,15 @@ const Header = () => {
     { name: 'All Products', href: '/collections/all-products' },
   ]
 
-  const mobileLinks = [...navLinks, ...categoryLinks]
+  const mobileLinks = [
+    ...navLinks,
+    ...categoryLinks,
+    { name: 'My Account', href: '/account' },
+    {
+      name: isAdminAuthenticated ? 'Admin Dashboard' : 'Admin Login',
+      href: isAdminAuthenticated ? '/admin/dashboard' : '/admin/login',
+    },
+  ]
 
   return (
     <header
@@ -108,6 +131,15 @@ const Header = () => {
             <Tooltip label="Account">
               <Link href="/account" className="rounded-full p-2 text-primary transition-colors hover:bg-navy-light">
                 <User size={20} />
+              </Link>
+            </Tooltip>
+
+            <Tooltip label={isAdminAuthenticated ? 'Admin Dashboard' : 'Admin Login'}>
+              <Link
+                href={isAdminAuthenticated ? '/admin/dashboard' : '/admin/login'}
+                className="rounded-full p-2 text-primary transition-colors hover:bg-navy-light"
+              >
+                <Shield size={20} />
               </Link>
             </Tooltip>
 

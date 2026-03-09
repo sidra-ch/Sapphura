@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { Lock, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -161,5 +161,13 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50" />}>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }

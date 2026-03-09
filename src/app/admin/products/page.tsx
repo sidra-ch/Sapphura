@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -35,12 +35,7 @@ export default function AdminProductsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
 
-  useEffect(() => {
-    checkAuth()
-    fetchProducts()
-  }, [])
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/session')
       const data = await response.json()
@@ -50,9 +45,9 @@ export default function AdminProductsPage() {
     } catch (error) {
       router.push('/admin/login')
     }
-  }
+  }, [router])
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const response = await fetch('/api/products')
       const data = await response.json()
@@ -64,7 +59,12 @@ export default function AdminProductsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    checkAuth()
+    fetchProducts()
+  }, [checkAuth, fetchProducts])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return

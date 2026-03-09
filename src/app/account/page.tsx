@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import ProfileEditor from '@/components/account/ProfileEditor'
 import AddressManager from '@/components/account/AddressManager'
 import OrderHistory from '@/components/account/OrderHistory'
 import Breadcrumb from '@/components/navigation/Breadcrumb'
 import Loader from '@/components/ui/Loader'
-import { User, MapPin, ShoppingBag, LogOut } from 'lucide-react'
+import { User, MapPin, ShoppingBag, LogOut, ShieldCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 type Tab = 'profile' | 'addresses' | 'orders'
@@ -89,8 +90,23 @@ const mockOrders = [
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<Tab>('profile')
   const [loading, setLoading] = useState(false)
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
   const [profile, setProfile] = useState(mockProfile)
   const [addresses, setAddresses] = useState(mockAddresses)
+
+  useEffect(() => {
+    const checkAdminSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session', { cache: 'no-store' })
+        const data = await response.json()
+        setIsAdminAuthenticated(Boolean(data?.success))
+      } catch {
+        setIsAdminAuthenticated(false)
+      }
+    }
+
+    checkAdminSession()
+  }, [])
 
   const tabs: { id: Tab; label: string; icon: typeof User }[] = [
     { id: 'profile', label: 'My Profile', icon: User },
@@ -175,29 +191,44 @@ export default function AccountPage() {
     }
   }
 
-  const handleLogout = () => {
-    if (confirm('Are you sure you want to logout?')) {
-      toast.success('Logged out successfully')
-      // window.location.href = '/'
+  const handleAdminLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      setIsAdminAuthenticated(false)
+      toast.success('Admin logged out successfully')
+    } catch {
+      toast.error('Failed to logout admin session')
     }
   }
 
   return (
-    <main className="min-h-screen bg-navy">
+    <main className="min-h-screen bg-navy pt-28 md:pt-32">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Account' }]} />
 
       <section className="py-12">
         <div className="max-w-6xl mx-auto px-4">
-          {/* Header with Logout */}
+          {/* Header with Account Actions */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-4xl font-bold text-primary">My Account</h1>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 border-2 border-red-500 text-red-500 rounded-lg font-semibold hover:bg-red-500/10 transition-colors"
-            >
-              <LogOut size={20} />
-              Logout
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                href={isAdminAuthenticated ? '/admin/dashboard' : '/admin/login'}
+                className="flex items-center gap-2 px-4 py-2 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary/10 transition-colors"
+              >
+                <ShieldCheck size={20} />
+                {isAdminAuthenticated ? 'Admin Dashboard' : 'Admin Login'}
+              </Link>
+
+              {isAdminAuthenticated && (
+                <button
+                  onClick={handleAdminLogout}
+                  className="flex items-center gap-2 px-4 py-2 border-2 border-red-500 text-red-500 rounded-lg font-semibold hover:bg-red-500/10 transition-colors"
+                >
+                  <LogOut size={20} />
+                  Admin Logout
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Tab Navigation */}
