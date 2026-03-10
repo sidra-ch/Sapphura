@@ -1,10 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import Modal from '@/components/ui/Modal'
-import { Search, ChevronDown, Eye, Edit2 } from 'lucide-react'
+import { Search, ChevronDown, Eye, Edit2, ArrowLeft } from 'lucide-react'
 
 interface Order {
   id: string
@@ -93,9 +94,18 @@ export default function AdminOrdersPage() {
     <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Order Management</h1>
-          <p className="text-gray-600 mt-2">Manage customer orders and track shipments</p>
+        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Order Management</h1>
+            <p className="text-gray-600 mt-2">Manage customer orders and track shipments</p>
+          </div>
+          <Link
+            href="/admin/dashboard"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+          >
+            <ArrowLeft size={16} />
+            Dashboard
+          </Link>
         </div>
 
         {/* Filters */}

@@ -144,9 +144,10 @@ export default function AdminProductsPage() {
             <div className="flex items-start gap-3 sm:items-center sm:gap-4">
               <Link
                 href="/admin/dashboard"
-                className="text-primary/70 hover:text-primary transition-colors"
+                className="inline-flex items-center gap-2 text-primary/70 hover:text-primary transition-colors"
               >
                 <ArrowLeft size={22} />
+                <span className="hidden sm:inline">Dashboard</span>
               </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-primary">Product Management</h1>
