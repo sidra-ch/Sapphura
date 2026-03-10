@@ -16,7 +16,11 @@ export async function POST(request: Request) {
       return rateLimitResponse()
     }
 
-    const body = await request.json()
+    const rawBody = await request.json()
+    const body = {
+      ...rawBody,
+      email: typeof rawBody?.email === 'string' ? rawBody.email.trim().toLowerCase() : rawBody?.email,
+    }
 
     // Validate input
     const validationResult = loginSchema.safeParse(body)
@@ -25,10 +29,11 @@ export async function POST(request: Request) {
     }
 
     const { email, password } = validationResult.data
+    const normalizedEmail = email.trim().toLowerCase()
 
     // Check database for user
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email: normalizedEmail }
     })
 
     if (!user) {
