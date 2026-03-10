@@ -231,8 +231,82 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* Products Table */}
-        <div className="gold-glass rounded-xl overflow-hidden">
+        {/* Products List */}
+        <div className="space-y-4 md:hidden">
+          {filteredProducts.length === 0 ? (
+            <div className="gold-glass rounded-xl px-6 py-12 text-center text-primary/70">
+              No products found
+            </div>
+          ) : (
+            filteredProducts.map((product) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="gold-glass rounded-xl p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="relative h-14 w-14 shrink-0 rounded-lg overflow-hidden bg-navy-light">
+                    {product.images[0] && (
+                      <Image
+                        src={product.images[0]}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-primary truncate">{product.name}</p>
+                    <p className="text-xs text-primary/60 truncate">{product.slug}</p>
+                    <p className="mt-1 text-sm text-primary/80">{product.category}</p>
+                    <p className="text-sm font-semibold text-primary">PKR {product.price.toLocaleString()}</p>
+                    <p className="text-xs text-primary/75">{product.stock} units</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <span
+                    className={`px-3 py-1 text-xs font-medium rounded-full ${
+                      product.inStock
+                        ? 'bg-green-500/10 text-green-400 border border-green-500/30'
+                        : 'bg-red-500/10 text-red-400 border border-red-500/30'
+                    }`}
+                  >
+                    {product.inStock ? 'In Stock' : 'Out of Stock'}
+                  </span>
+
+                  <div className="flex items-center gap-1">
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="p-2 text-primary/70 hover:text-primary hover:bg-navy-light rounded-lg transition-colors"
+                      title="View"
+                    >
+                      <Eye size={18} />
+                    </Link>
+                    <Link
+                      href={`/admin/products/edit/${product.id}`}
+                      className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                      title="Edit"
+                    >
+                      <Edit size={18} />
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+
+        <div className="hidden md:block gold-glass rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-navy-light border-b border-primary/20">
