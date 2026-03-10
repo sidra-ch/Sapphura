@@ -74,10 +74,7 @@ export default function WishlistPage() {
         return sorted.sort((a, b) => b.price - a.price)
       case 'recent':
       default:
-        return sorted.sort(
-          (a, b) =>
-            new Date(b.addedDate || 0).getTime() - new Date(a.addedDate || 0).getTime()
-        )
+        return sorted.reverse()
     }
   }
 
