@@ -104,22 +104,22 @@ export default function AdminProductsPage() {
       {/* Header */}
       <header className="bg-navy-light border-b border-primary/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3 sm:items-center sm:gap-4">
               <Link
                 href="/admin/dashboard"
                 className="text-primary/70 hover:text-primary transition-colors"
               >
-                <ArrowLeft size={24} />
+                <ArrowLeft size={22} />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-primary">Product Management</h1>
-                <p className="text-primary/70">Manage your store products</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-primary">Product Management</h1>
+                <p className="text-sm sm:text-base text-primary/70">Manage your store products</p>
               </div>
             </div>
             <Link
               href="/admin/products/new"
-              className="flex items-center gap-2 gold-btn px-4 py-2 rounded-lg font-semibold text-black"
+              className="flex w-full items-center justify-center gap-2 gold-btn px-4 py-2 rounded-lg font-semibold text-black sm:w-auto"
             >
               <Plus size={20} />
               Add New Product
@@ -144,7 +144,7 @@ export default function AdminProductsPage() {
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-3 bg-navy-light border border-primary/20 rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="w-full sm:w-auto px-4 py-3 bg-navy-light border border-primary/20 rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
             {categories.map((cat) => (
               <option key={cat} value={cat}>

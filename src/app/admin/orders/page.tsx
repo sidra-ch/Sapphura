@@ -90,16 +90,16 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Order Management</h1>
           <p className="text-gray-600 mt-2">Manage customer orders and track shipments</p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative">
@@ -146,7 +146,7 @@ export default function AdminOrdersPage() {
 
               <button
                 type="submit"
-                className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition"
+                className="w-full md:w-auto bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition"
               >
                 Search
               </button>
@@ -167,7 +167,7 @@ export default function AdminOrdersPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[760px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Order #</th>
@@ -182,19 +182,19 @@ export default function AdminOrdersPage() {
                 <tbody className="divide-y divide-gray-200">
                   {orders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 text-sm font-mono text-blue-600 hover:underline cursor-pointer">
+                      <td className="px-4 md:px-6 py-4 text-sm font-mono text-blue-600 hover:underline cursor-pointer whitespace-nowrap">
                         {order.orderNumber}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4">
                         <div>
                           <p className="text-sm font-medium text-gray-900">{order.customerName}</p>
                           <p className="text-sm text-gray-500">{order.email}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                      <td className="px-4 md:px-6 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap">
                         Rs. {order.total.toFixed(2)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                         <select
                           value={order.status}
                           onChange={(e) => handleStatusChange(order, e.target.value)}
@@ -208,15 +208,15 @@ export default function AdminOrdersPage() {
                           <option value="CANCELLED">Cancelled</option>
                         </select>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                         <span className={`text-xs font-medium px-3 py-1 rounded-full ${paymentColors[order.paymentStatus]}`}>
                           {order.paymentStatus}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-4 md:px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                         <button
                           onClick={() => {
                             setSelectedOrder(order)
@@ -238,7 +238,7 @@ export default function AdminOrdersPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="mt-6 flex justify-center gap-2">
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
@@ -272,7 +272,7 @@ export default function AdminOrdersPage() {
                 <p className="font-medium text-lg">{selectedOrder.customerName}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <p className="text-sm text-primary/60">Email</p>
                   <p className="font-medium">{selectedOrder.email}</p>

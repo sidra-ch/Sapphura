@@ -24,9 +24,9 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-navy p-4 gap-4">
+    <div className="flex min-h-screen flex-col bg-navy p-3 gap-3 md:flex-row md:p-4 md:gap-4">
       <AdminSidebar activePath={pathname} />
-      <main className="flex-1 overflow-auto rounded-xl border border-primary/10 bg-navy">
+      <main className="flex-1 overflow-auto rounded-xl border border-primary/10 bg-navy min-w-0">
         {children}
       </main>
     </div>

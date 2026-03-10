@@ -37,15 +37,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-navy flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-navy flex items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="gold-glass rounded-2xl p-8 shadow-2xl">
+        <div className="gold-glass rounded-2xl p-5 sm:p-7 md:p-8 shadow-2xl">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary mb-2">Sappura Admin</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">Sappura Admin</h1>
             <p className="text-primary/70">Sign in to your account</p>
           </div>
 

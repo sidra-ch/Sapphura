@@ -57,11 +57,11 @@ export default function NewProductPage() {
   }
 
   return (
-    <div className="min-h-screen bg-navy px-4 py-24">
+    <div className="min-h-screen bg-navy px-3 sm:px-4 py-8 sm:py-16 md:py-24">
       <div className="container mx-auto max-w-3xl">
-        <div className="gold-glass rounded-2xl p-8 md:p-10 shadow-2xl">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-primary">Add New Product</h1>
+        <div className="gold-glass rounded-2xl p-5 sm:p-6 md:p-10 shadow-2xl">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">Add New Product</h1>
             <Link href="/admin/products" className="text-primary/75 hover:text-primary transition-colors">
               Back
             </Link>

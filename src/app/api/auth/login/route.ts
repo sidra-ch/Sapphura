@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { loginSchema } from '@/lib/validation'
-import { comparePassword, createToken } from '@/lib/auth-utils'
+import { comparePassword, createToken, hashPassword } from '@/lib/auth-utils'
 import { checkRateLimit, rateLimits } from '@/lib/rate-limit'
 import { validationError, unauthorizedResponse, rateLimitResponse } from '@/lib/api-response'
 
@@ -30,10 +30,16 @@ export async function POST(request: Request) {
 
     const { email, password } = validationResult.data
     const normalizedEmail = email.trim().toLowerCase()
+    const trimmedPassword = password.trim()
 
-    // Check database for user
-    const user = await prisma.user.findUnique({
-      where: { email: normalizedEmail }
+    // Check database for user (case-insensitive for legacy records)
+    const user = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive',
+        },
+      },
     })
 
     if (!user) {
@@ -41,8 +47,28 @@ export async function POST(request: Request) {
       return unauthorizedResponse('Invalid email or password')
     }
 
-    // Compare password
-    const passwordMatch = await comparePassword(password, user.password)
+    // Compare password (support legacy plaintext values and migrate)
+    let passwordMatch = false
+
+    try {
+      passwordMatch = await comparePassword(trimmedPassword, user.password)
+    } catch {
+      passwordMatch = false
+    }
+
+    const isLegacyPlaintext = !passwordMatch && user.password === trimmedPassword
+
+    if (isLegacyPlaintext) {
+      passwordMatch = true
+      const migratedHash = await hashPassword(trimmedPassword)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: migratedHash,
+          email: normalizedEmail,
+        },
+      })
+    }
 
     if (!passwordMatch) {
       return unauthorizedResponse('Invalid email or password')

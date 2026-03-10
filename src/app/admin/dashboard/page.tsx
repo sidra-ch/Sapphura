@@ -158,18 +158,18 @@ export default function AdminDashboard() {
       {/* Header */}
       <header className="bg-navy-light border-b border-primary/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-primary">Sappura Admin Dashboard</h1>
-              <p className="text-primary/70">Welcome back, {user.name}!</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-primary">Sappura Admin Dashboard</h1>
+              <p className="text-sm sm:text-base text-primary/70">Welcome back, {user.name}!</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 md:gap-4">
               <Link href="/" className="text-primary/70 hover:text-primary transition-colors">
                 View Store
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-red-500/10 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition-colors"
               >
                 <LogOut size={18} />
                 Logout

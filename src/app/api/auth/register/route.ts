@@ -23,7 +23,11 @@ export async function POST(request: Request) {
       return rateLimitResponse()
     }
 
-    const body = await request.json()
+    const rawBody = await request.json()
+    const body = {
+      ...rawBody,
+      email: typeof rawBody?.email === 'string' ? rawBody.email.trim().toLowerCase() : rawBody?.email,
+    }
 
     // Validate input
     const validationResult = registerSchema.safeParse(body)
@@ -32,10 +36,11 @@ export async function POST(request: Request) {
     }
 
     const { name, email, password } = validationResult.data
+    const normalizedEmail = email.trim().toLowerCase()
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email: normalizedEmail }
     })
 
     if (existingUser) {
@@ -52,7 +57,7 @@ export async function POST(request: Request) {
     const user = await prisma.user.create({
       data: {
         name,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         role: 'ADMIN'
       }

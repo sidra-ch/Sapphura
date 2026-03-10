@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -15,6 +16,8 @@ export default function RegisterPage() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,9 +29,24 @@ export default function RegisterPage() {
       return
     }
 
-    // Validate password length
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+    // Validate password format to match backend
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+
+    if (!/[A-Z]/.test(formData.password)) {
+      setError('Password must contain at least one uppercase letter')
+      return
+    }
+
+    if (!/[a-z]/.test(formData.password)) {
+      setError('Password must contain at least one lowercase letter')
+      return
+    }
+
+    if (!/[0-9]/.test(formData.password)) {
+      setError('Password must contain at least one number')
       return
     }
 
@@ -40,8 +58,9 @@ export default function RegisterPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
-          email: formData.email,
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
+          confirmPassword: formData.confirmPassword,
         }),
       })
 
@@ -51,7 +70,11 @@ export default function RegisterPage() {
         // Auto login after successful registration
         router.push('/admin/dashboard')
       } else {
-        setError(data.error || 'Registration failed')
+        const fieldError = data?.errors
+          ? Object.values(data.errors).find((messages: unknown) => Array.isArray(messages) && messages.length > 0)
+          : null
+
+        setError((Array.isArray(fieldError) ? fieldError[0] : null) || data.error || 'Registration failed')
       }
     } catch (err) {
       setError('An error occurred. Please try again.')
@@ -61,15 +84,15 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-navy flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-navy flex items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="gold-glass rounded-2xl p-8 shadow-2xl">
+        <div className="gold-glass rounded-2xl p-5 sm:p-7 md:p-8 shadow-2xl">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary mb-2">Create Admin Account</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">Create Admin Account</h1>
             <p className="text-primary/70">Register as an administrator</p>
           </div>
 
@@ -114,30 +137,50 @@ export default function RegisterPage() {
               <label htmlFor="password" className="block text-sm font-medium text-primary mb-2">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 bg-navy-light border border-primary/20 rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                placeholder="Min. 6 characters"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-4 py-3 pr-12 bg-navy-light border border-primary/20 rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  placeholder="Min. 8 chars, A-z, 0-9"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-primary/70 hover:text-primary transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-primary mb-2">
                 Confirm Password
               </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                required
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className="w-full px-4 py-3 bg-navy-light border border-primary/20 rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                placeholder="Re-enter password"
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-3 pr-12 bg-navy-light border border-primary/20 rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  placeholder="Re-enter password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-primary/70 hover:text-primary transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <button
