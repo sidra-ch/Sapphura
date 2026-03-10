@@ -67,8 +67,8 @@ export default function WishlistCard({
 
           {/* Remove from Wishlist */}
           <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={isHovered ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 1, scale: 1 }}
+            animate={isHovered ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1 }}
             whileTap={{ scale: 0.9 }}
             onClick={(e) => {
               e.preventDefault()

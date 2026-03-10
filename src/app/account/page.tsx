@@ -205,15 +205,15 @@ export default function AccountPage() {
     <main className="min-h-screen bg-navy pt-28 md:pt-32">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Account' }]} />
 
-      <section className="py-12">
+      <section className="py-8 md:py-12">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header with Account Actions */}
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-4xl font-bold text-primary">My Account</h1>
-            <div className="flex items-center gap-3">
+          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <h1 className="text-3xl font-bold text-primary md:text-4xl">My Account</h1>
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
               <Link
                 href={isAdminAuthenticated ? '/admin/dashboard' : '/admin/login'}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary/10 transition-colors"
+                className="flex items-center justify-center gap-2 rounded-lg border-2 border-primary px-4 py-2 font-semibold text-primary transition-colors hover:bg-primary/10"
               >
                 <ShieldCheck size={20} />
                 {isAdminAuthenticated ? 'Admin Dashboard' : 'Admin Login'}
@@ -222,7 +222,7 @@ export default function AccountPage() {
               {isAdminAuthenticated && (
                 <button
                   onClick={handleAdminLogout}
-                  className="flex items-center gap-2 px-4 py-2 border-2 border-red-500 text-red-500 rounded-lg font-semibold hover:bg-red-500/10 transition-colors"
+                  className="flex items-center justify-center gap-2 rounded-lg border-2 border-red-500 px-4 py-2 font-semibold text-red-500 transition-colors hover:bg-red-500/10"
                 >
                   <LogOut size={20} />
                   Admin Logout
@@ -232,14 +232,14 @@ export default function AccountPage() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
+          <div className="mb-8 grid grid-cols-1 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-2">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
                 <motion.button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 whitespace-nowrap transition-all ${
+                  className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-3 font-semibold transition-all sm:px-6 ${
                     activeTab === tab.id
                       ? 'gold-btn text-navy'
                       : 'border-2 border-primary text-primary hover:bg-primary/10'

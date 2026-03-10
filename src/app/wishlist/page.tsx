@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import Breadcrumb from '@/components/navigation/Breadcrumb'
 import WishlistCard from '@/components/product/WishlistCard'
@@ -9,60 +9,54 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { useWishlistStore } from '@/store/wishlistStore'
 
-// Mock wishlist data
-const mockWishlistItems = [
-  {
-    id: '1',
-    slug: 'classic-lawn-suit',
-    name: 'Classic Lawn Suit - 2 Piece',
-    price: 4999,
-    image:
-      'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=500&h=500&fit=crop',
-    category: 'Unstitched',
-    rating: 4.5,
-    addedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '2',
-    slug: 'printed-dupatta',
-    name: 'Printed Dupatta with Tassels',
-    price: 1999,
-    image:
-      'https://images.unsplash.com/photo-1589231474651-0a7f90f0c05c?w=500&h=500&fit=crop',
-    category: 'Accessories',
-    rating: 4.8,
-    addedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '3',
-    slug: 'embroidered-kurti',
-    name: 'Embroidered Kurti with Palazzo',
-    price: 3499,
-    image:
-      'https://images.unsplash.com/photo-1552252881-4a5590229f00?w=500&h=500&fit=crop',
-    category: 'Stitched',
-    rating: 4.3,
-    addedDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '4',
-    slug: 'cotton-dupatta-white',
-    name: 'Pure Cotton White Dupatta',
-    price: 899,
-    image:
-      'https://images.unsplash.com/photo-1520323205657-c74a8e6fbfe7?w=500&h=500&fit=crop',
-    category: 'Accessories',
-    rating: 4.6,
-    addedDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-]
+type ProductImageMap = Record<string, string>
 
 export default function WishlistPage() {
-  const [items, setItems] = useState(mockWishlistItems)
+  const wishlistItems = useWishlistStore((state) => state.items)
+  const removeWishlistItem = useWishlistStore((state) => state.removeItem)
+  const [imageMap, setImageMap] = useState<ProductImageMap>({})
   const [sortBy, setSortBy] = useState<'recent' | 'price-low' | 'price-high'>('recent')
 
+  useEffect(() => {
+    const loadProductImages = async () => {
+      try {
+        const response = await fetch('/api/products?limit=300', { cache: 'no-store' })
+        const json = await response.json()
+        if (!json.success || !Array.isArray(json.products)) return
+
+        const nextMap: ProductImageMap = {}
+        for (const product of json.products) {
+          if (product?.slug && Array.isArray(product.images) && product.images[0]) {
+            nextMap[product.slug] = product.images[0]
+          }
+        }
+        setImageMap(nextMap)
+      } catch {
+        setImageMap({})
+      }
+    }
+
+    loadProductImages()
+  }, [])
+
+  const items = useMemo(
+    () =>
+      wishlistItems.map((item) => ({
+        id: item.productId,
+        slug: item.slug,
+        name: item.productName,
+        price: item.price,
+        image:
+          imageMap[item.slug] ||
+          (item.image?.includes('images.unsplash.com') ? '' : item.image) ||
+          'https://res.cloudinary.com/dwmxdyvd2/image/upload/v1773004805/logo-1_gzmux1.png',
+        category: 'Wishlist',
+      })),
+    [wishlistItems, imageMap]
+  )
+
   const handleRemove = (id: string) => {
-    setItems(items.filter((item) => item.id !== id))
+    removeWishlistItem(id)
     toast.success('Removed from wishlist')
   }
 
@@ -97,12 +91,12 @@ export default function WishlistPage() {
       <section className="py-12">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-4xl font-bold text-primary flex items-center gap-3">
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="flex items-center gap-3 text-3xl font-bold text-primary sm:text-4xl">
               <Heart size={32} className="fill-primary" />
               My Wishlist
             </h1>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <p className="text-2xl font-bold text-primary">
                 PKR {totalPrice.toLocaleString()}
               </p>
@@ -136,10 +130,10 @@ export default function WishlistPage() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="gold-glass rounded-xl p-4 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+                className="gold-glass mb-8 flex flex-col gap-4 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <p className="text-primary font-semibold">Sort by:</p>
-                <div className="flex gap-2">
+                <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto">
                   {[
                     { value: 'recent' as const, label: 'Most Recent' },
                     { value: 'price-low' as const, label: 'Price: Low to High' },
@@ -161,7 +155,7 @@ export default function WishlistPage() {
               </motion.div>
 
               {/* Wishlist Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {sortedItems.map((item, idx) => (
                   <motion.div
                     key={item.id}
@@ -182,7 +176,7 @@ export default function WishlistPage() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="gold-glass rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+                className="gold-glass flex flex-col gap-4 rounded-xl p-6 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <p className="text-primary/70 text-sm mb-1">Total Wishlist Value</p>
@@ -191,10 +185,10 @@ export default function WishlistPage() {
                   </p>
                 </div>
 
-                <div className="flex gap-4 w-full sm:w-auto">
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
                   <Link
                     href="/collections"
-                    className="flex-1 border-2 border-primary text-primary py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-primary/10 transition-colors"
+                    className="flex-1 rounded-lg border-2 border-primary py-3 text-center font-semibold text-primary transition-colors hover:bg-primary/10"
                   >
                     Continue Shopping
                   </Link>

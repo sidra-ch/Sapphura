@@ -70,14 +70,14 @@ export default function CartPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="flex items-center justify-between mb-8">
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Shopping Cart</h1>
+              <h1 className="mb-2 text-3xl font-bold sm:text-4xl">Shopping Cart</h1>
               <p className="text-primary/75">{items.length} items in your cart</p>
             </div>
             <button
               onClick={handleClearCart}
-              className="text-red-600 hover:text-red-700 font-semibold flex items-center space-x-2"
+              className="flex items-center space-x-2 self-start font-semibold text-red-600 hover:text-red-700 sm:self-auto"
             >
               <Trash2 size={20} />
               <span>Clear Cart</span>
@@ -93,17 +93,17 @@ export default function CartPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="gold-glass rounded-xl p-6"
+                  className="gold-glass rounded-xl p-4 sm:p-6"
                 >
-                  <div className="flex items-center space-x-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:space-x-6 sm:gap-0">
                     {/* Product Image Placeholder */}
-                    <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 sm:h-24 sm:w-24 flex items-center justify-center">
                       <ShoppingBag className="text-primary" size={40} />
                     </div>
 
                     {/* Product Info */}
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold mb-1">{item.name}</h3>
+                      <h3 className="mb-1 text-lg font-semibold sm:text-xl">{item.name}</h3>
                       {item.variant && (
                         <p className="text-sm text-primary/75 mb-2">Variant: {item.variant}</p>
                       )}
@@ -113,7 +113,7 @@ export default function CartPage() {
                     </div>
 
                     {/* Quantity Controls */}
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3 self-start sm:self-auto">
                       <button
                         onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                         className="p-2 rounded-lg bg-navy hover:bg-secondary transition-colors border border-primary/30"
@@ -133,12 +133,14 @@ export default function CartPage() {
                     </div>
 
                     {/* Remove Button */}
-                    <button
-                      onClick={() => handleRemoveItem(item.id, item.name)}
-                      className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                    >
-                      <Trash2 size={20} />
-                    </button>
+                    <div className="flex sm:block">
+                      <button
+                        onClick={() => handleRemoveItem(item.id, item.name)}
+                        className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Subtotal */}
@@ -157,7 +159,7 @@ export default function CartPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="gold-glass rounded-xl p-6 sticky top-32 space-y-6"
+                className="gold-glass rounded-xl p-6 lg:sticky lg:top-32 space-y-6"
               >
                 <h2 className="text-2xl font-bold">Order Summary</h2>
 
@@ -173,7 +175,7 @@ export default function CartPage() {
                   onRemove={() => setAppliedCoupon(null)}
                 />
 
-                <Link href="/checkout">
+                <Link href="/checkout" className="block">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -183,7 +185,7 @@ export default function CartPage() {
                   </motion.button>
                 </Link>
 
-                <Link href="/collections">
+                <Link href="/collections" className="block">
                   <button className="w-full border-2 border-primary text-primary py-4 rounded-lg font-semibold hover:bg-primary hover:text-navy transition-colors flex items-center justify-center space-x-2">
                     <ArrowLeft size={20} />
                     <span>Continue Shopping</span>
