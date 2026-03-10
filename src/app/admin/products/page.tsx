@@ -49,26 +49,50 @@ export default function AdminProductsPage() {
   }, [router])
 
   const fetchProducts = useCallback(async () => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000)
-
     try {
+      setLoading(true)
       setError('')
-      const response = await fetch('/api/products', {
-        cache: 'no-store',
-        signal: controller.signal,
-      })
-      const data = await response.json()
-      if (data.success) {
-        setProducts(data.products)
-      } else {
-        setError(data.error || 'Failed to fetch products')
+      let fetchedProducts: Product[] = []
+      let lastError = ''
+
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        try {
+          const response = await fetch('/api/products', {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache',
+            },
+          })
+
+          const data = await response.json()
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Failed to fetch products')
+          }
+
+          fetchedProducts = Array.isArray(data.products) ? data.products : []
+          lastError = ''
+          break
+        } catch (requestError) {
+          lastError = requestError instanceof Error ? requestError.message : 'Failed to fetch products'
+
+          if (attempt < 3) {
+            await new Promise((resolve) => setTimeout(resolve, attempt * 600))
+          }
+        }
       }
+
+      if (lastError) {
+        setProducts([])
+        setError('Failed to fetch products. Please try again.')
+        return
+      }
+
+      setProducts(fetchedProducts)
     } catch (error) {
       console.error('Failed to fetch products:', error)
       setError('Failed to fetch products. Please try again.')
     } finally {
-      clearTimeout(timeoutId)
       setLoading(false)
     }
   }, [])
