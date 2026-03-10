@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import Breadcrumb from '@/components/navigation/Breadcrumb'
 import WishlistCard from '@/components/product/WishlistCard'
-import { Heart, ShoppingBag, ArrowRight } from 'lucide-react'
+import { Heart, ShoppingBag, ArrowUpDown } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { useWishlistStore } from '@/store/wishlistStore'
@@ -46,7 +46,8 @@ export default function WishlistPage() {
         id: item.productId,
         slug: item.slug,
         name: item.productName,
-        price: item.price,
+        price: Number(item.price) || 0,
+        addedAt: item.addedAt,
         image:
           imageMap[item.slug] ||
           (item.image?.includes('images.unsplash.com') ? '' : item.image) ||
@@ -70,12 +71,16 @@ export default function WishlistPage() {
     const sorted = [...items]
     switch (sortBy) {
       case 'price-low':
-        return sorted.sort((a, b) => a.price - b.price)
+        return sorted.sort((a, b) => Number(a.price) - Number(b.price))
       case 'price-high':
-        return sorted.sort((a, b) => b.price - a.price)
+        return sorted.sort((a, b) => Number(b.price) - Number(a.price))
       case 'recent':
       default:
-        return sorted.reverse()
+        return sorted.sort((a, b) => {
+          const aTime = a.addedAt ? new Date(a.addedAt).getTime() : 0
+          const bTime = b.addedAt ? new Date(b.addedAt).getTime() : 0
+          return bTime - aTime
+        })
     }
   }
 
@@ -139,24 +144,19 @@ export default function WishlistPage() {
                 className="gold-glass mb-8 flex flex-col gap-4 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <p className="text-primary font-semibold">Sort by:</p>
-                <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto">
-                  {[
-                    { value: 'recent' as const, label: 'Most Recent' },
-                    { value: 'price-low' as const, label: 'Price: Low to High' },
-                    { value: 'price-high' as const, label: 'Price: High to Low' },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setSortBy(option.value)}
-                      className={`px-3 py-1 rounded-lg text-sm font-semibold transition-all ${
-                        sortBy === option.value
-                          ? 'bg-primary text-navy'
-                          : 'bg-primary/20 text-primary hover:bg-primary/30'
-                      }`}
+                <div className="w-full sm:w-auto">
+                  <div className="relative">
+                    <ArrowUpDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/70" />
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as 'recent' | 'price-low' | 'price-high')}
+                      className="w-full sm:w-[240px] rounded-lg border border-primary/30 bg-navy-light py-2 pl-9 pr-3 text-sm font-semibold text-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
                     >
-                      {option.label}
-                    </button>
-                  ))}
+                      <option value="recent">Most Recent</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="price-high">Price: High to Low</option>
+                    </select>
+                  </div>
                 </div>
               </motion.div>
 

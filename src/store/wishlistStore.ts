@@ -7,6 +7,7 @@ export interface WishlistItem {
   price: number
   image: string
   slug: string
+  addedAt?: string
 }
 
 export interface WishlistStore {
@@ -45,7 +46,13 @@ export const useWishlistStore = create<WishlistStore>()(
             return state
           }
           return {
-            items: [...state.items, item]
+            items: [
+              ...state.items,
+              {
+                ...item,
+                addedAt: item.addedAt || new Date().toISOString(),
+              },
+            ]
           }
         }),
 
