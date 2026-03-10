@@ -25,7 +25,7 @@ export default function MobileMenu({ isOpen, links, onClose }: MobileMenuProps) 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/70 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/85 lg:hidden"
           />
 
           <motion.div
@@ -33,9 +33,9 @@ export default function MobileMenu({ isOpen, links, onClose }: MobileMenuProps) 
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'tween' }}
-            className="fixed inset-y-0 right-0 z-50 h-full w-64 border-l border-primary/25 bg-navy shadow-2xl lg:hidden"
+            className="fixed inset-y-0 right-0 z-50 h-full w-72 border-l border-primary/30 bg-[#050d1f] shadow-2xl lg:hidden"
           >
-            <div className="gold-glass h-full p-6">
+            <div className="h-full p-6">
               <button
                 onClick={onClose}
                 className="absolute right-4 top-4 rounded-full p-2 text-primary hover:bg-navy-light"
@@ -49,7 +49,7 @@ export default function MobileMenu({ isOpen, links, onClose }: MobileMenuProps) 
                     key={link.name}
                     href={link.href}
                     onClick={onClose}
-                    className="block py-2 font-medium text-primary/90 transition-colors hover:text-primary"
+                    className="block rounded-md border border-primary/20 bg-navy px-3 py-3 text-base font-semibold text-primary transition-colors hover:bg-navy-light hover:text-primary"
                   >
                     {link.name}
                   </Link>
