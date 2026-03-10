@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import { Open_Sans } from 'next/font/google'
 import './globals.css'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
+import AppShell from '@/components/layout/AppShell'
 import { Toaster } from 'react-hot-toast'
 
 const openSans = Open_Sans({ 
@@ -29,11 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${openSans.variable} font-sans antialiased bg-navy text-primary`}>
-        <Header />
-        <main className="min-h-screen relative">
-          {children}
-        </main>
-        <Footer />
+        <AppShell>{children}</AppShell>
         <Toaster
           position="top-right"
           toastOptions={{
