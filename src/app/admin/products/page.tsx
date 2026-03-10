@@ -54,7 +54,7 @@ export default function AdminProductsPage() {
 
     try {
       setError('')
-      const response = await fetch('/api/products?fallback=0', {
+      const response = await fetch('/api/products', {
         cache: 'no-store',
         signal: controller.signal,
       })
