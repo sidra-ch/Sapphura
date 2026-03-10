@@ -14,6 +14,7 @@ type ProductImageMap = Record<string, string>
 export default function WishlistPage() {
   const wishlistItems = useWishlistStore((state) => state.items)
   const removeWishlistItem = useWishlistStore((state) => state.removeItem)
+  const hasHydrated = useWishlistStore((state) => state.hasHydrated)
   const [imageMap, setImageMap] = useState<ProductImageMap>({})
   const [sortBy, setSortBy] = useState<'recent' | 'price-low' | 'price-high'>('recent')
 
@@ -101,7 +102,15 @@ export default function WishlistPage() {
             </div>
           </div>
 
-          {items.length === 0 ? (
+          {!hasHydrated ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="gold-glass rounded-xl p-16 text-center"
+            >
+              <p className="text-primary/70">Loading wishlist...</p>
+            </motion.div>
+          ) : items.length === 0 ? (
             // Empty State
             <motion.div
               initial={{ opacity: 0 }}

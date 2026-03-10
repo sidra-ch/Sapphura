@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
 
 export interface WishlistItem {
   productId: string
@@ -12,9 +12,11 @@ export interface WishlistItem {
 export interface WishlistStore {
   items: WishlistItem[]
   email: string | null
+  hasHydrated: boolean
   
   // Actions
   setEmail: (email: string) => void
+  setHasHydrated: (hydrated: boolean) => void
   addItem: (item: WishlistItem) => void
   removeItem: (productId: string) => void
   toggleItem: (item: WishlistItem) => boolean
@@ -28,9 +30,13 @@ export const useWishlistStore = create<WishlistStore>()(
     (set, get) => ({
       items: [],
       email: null,
+      hasHydrated: false,
 
       setEmail: (email: string) =>
         set({ email }),
+
+      setHasHydrated: (hydrated: boolean) =>
+        set({ hasHydrated: hydrated }),
 
       addItem: (item: WishlistItem) =>
         set((state) => {
@@ -74,7 +80,11 @@ export const useWishlistStore = create<WishlistStore>()(
     }),
     {
       name: 'wishlist-storage',
-      version: 1
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true)
+      },
     }
   )
 )

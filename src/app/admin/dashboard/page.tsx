@@ -101,28 +101,32 @@ export default function AdminDashboard() {
       value: stats.totalProducts,
       icon: Package,
       color: 'from-blue-500 to-blue-600',
-      change: '+12%',
+      hint: 'Manage products',
+      href: '/admin/products',
     },
     {
       title: 'Total Orders',
       value: stats.totalOrders,
       icon: ShoppingCart,
       color: 'from-green-500 to-green-600',
-      change: '+8%',
+      hint: 'View all orders',
+      href: '/admin/orders',
     },
     {
       title: 'Total Revenue',
       value: `PKR ${stats.totalRevenue.toLocaleString()}`,
       icon: DollarSign,
       color: 'from-yellow-500 to-yellow-600',
-      change: '+23%',
+      hint: 'Revenue overview',
+      href: '/admin/orders',
     },
     {
       title: 'Total Customers',
       value: stats.totalCustomers,
       icon: Users,
       color: 'from-purple-500 to-purple-600',
-      change: '+5%',
+      hint: 'Customer orders',
+      href: '/admin/orders',
     },
   ]
 
@@ -192,14 +196,16 @@ export default function AdminDashboard() {
                 transition={{ delay: index * 0.1 }}
                 className="gold-glass rounded-xl p-6"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-gradient-to-br ${stat.color}`}>
-                    <Icon className="text-white" size={24} />
+                <Link href={stat.href} className="block">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`p-3 rounded-lg bg-gradient-to-br ${stat.color}`}>
+                      <Icon className="text-white" size={24} />
+                    </div>
+                    <span className="text-xs text-primary/70">{stat.hint}</span>
                   </div>
-                  <span className="text-sm text-green-400">{stat.change}</span>
-                </div>
-                <h3 className="text-primary/70 text-sm font-medium mb-1">{stat.title}</h3>
-                <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                  <h3 className="text-primary/70 text-sm font-medium mb-1">{stat.title}</h3>
+                  <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                </Link>
               </motion.div>
             )
           })}
