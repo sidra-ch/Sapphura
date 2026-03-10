@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export default function NewProductPage() {
   const router = useRouter()
@@ -62,7 +63,8 @@ export default function NewProductPage() {
         <div className="gold-glass rounded-2xl p-5 sm:p-6 md:p-10 shadow-2xl">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">Add New Product</h1>
-            <Link href="/admin/products" className="text-primary/75 hover:text-primary transition-colors">
+            <Link href="/admin/products" className="inline-flex items-center gap-2 text-primary/75 hover:text-primary transition-colors">
+              <ArrowLeft size={18} />
               Back
             </Link>
           </div>
