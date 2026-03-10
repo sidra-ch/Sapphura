@@ -90,7 +90,7 @@ export default function ProductPage() {
     };
 
     fetchProduct();
-  }, [slug]);
+  }, [slug, isInWishlist]);
 
   if (loading) {
     return (
