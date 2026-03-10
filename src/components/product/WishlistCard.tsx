@@ -55,7 +55,7 @@ export default function WishlistCard({
       onMouseLeave={() => setIsHovered(false)}
       className="gold-glass rounded-xl overflow-hidden transition-all"
     >
-      <Link href={`/products/${item.slug}`}>
+      <Link href={`/products/${item.slug}?from=wishlist`}>
         <div className="relative aspect-square overflow-hidden bg-navy-light">
           <Image
             src={item.image}
@@ -91,7 +91,7 @@ export default function WishlistCard({
       </Link>
 
       <div className="p-5 space-y-3">
-        <Link href={`/products/${item.slug}`}>
+        <Link href={`/products/${item.slug}?from=wishlist`}>
           <h3 className="font-semibold text-primary hover:text-primary/80 line-clamp-2 cursor-pointer transition-colors">
             {item.name}
           </h3>
@@ -125,7 +125,7 @@ export default function WishlistCard({
           </button>
 
           <Link
-            href={`/products/${item.slug}`}
+            href={`/products/${item.slug}?from=wishlist`}
             className="flex-1 border-2 border-primary text-primary py-2 rounded-lg font-semibold flex items-center justify-center gap-2 text-sm hover:bg-primary/10 transition-colors"
           >
             <LinkIcon size={16} />

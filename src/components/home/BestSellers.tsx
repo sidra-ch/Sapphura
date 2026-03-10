@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useCartStore } from '@/store/cartStore'
+import { useWishlistStore } from '@/store/wishlistStore'
 import ProductCard from '@/components/product/ProductCard'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
 import { CloudinaryImageAsset } from '@/lib/product-image-map'
@@ -22,6 +23,9 @@ interface Product {
 
 const BestSellers = () => {
   const addItem = useCartStore((state) => state.addItem)
+  const addWishlistItem = useWishlistStore((state) => state.addItem)
+  const removeWishlistItem = useWishlistStore((state) => state.removeItem)
+  const isInWishlist = useWishlistStore((state) => state.isInWishlist)
   const [cloudinaryAssets, setCloudinaryAssets] = useState<CloudinaryImageAsset[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -128,6 +132,26 @@ const BestSellers = () => {
     }
   }
 
+  const handleWishlistToggle = (productId: string) => {
+    const product = displayProducts.find((p) => p.id === productId)
+    if (!product) return
+
+    if (isInWishlist(productId)) {
+      removeWishlistItem(productId)
+      toast.success('Removed from wishlist')
+      return
+    }
+
+    addWishlistItem({
+      productId: product.id,
+      productName: product.name,
+      price: product.price,
+      image: product.images[0] || '',
+      slug: product.slug,
+    })
+    toast.success('Added to wishlist')
+  }
+
   if (loading) {
     return (
       <section className="py-20 bg-gradient-to-b from-navy-dark to-navy">
@@ -173,7 +197,7 @@ const BestSellers = () => {
               rating={product.rating}
               badge={product.badge}
               onAddToCart={handleAddToCart}
-              onWishlist={() => toast.success('Added to wishlist!')}
+              onWishlist={handleWishlistToggle}
               showAnimations={true}
               showWishlistButton={true}
               animationDelay={index}

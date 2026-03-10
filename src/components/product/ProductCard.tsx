@@ -5,6 +5,8 @@ import Image from 'next/image'
 import { Star, ShoppingCart, Heart } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+import toast from 'react-hot-toast'
+import { useWishlistStore } from '@/store/wishlistStore'
 
 type ProductCardProps = {
   id: string
@@ -38,7 +40,35 @@ export default function ProductCard({
   animationDelay = 0,
 }: ProductCardProps) {
   const [hoveredProduct, setHoveredProduct] = useState(false)
+  const addWishlistItem = useWishlistStore((state) => state.addItem)
+  const removeWishlistItem = useWishlistStore((state) => state.removeItem)
+  const isInWishlist = useWishlistStore((state) => state.isInWishlist)
   const discountPercent = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
+  const inWishlist = isInWishlist(id)
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+
+    if (onWishlist) {
+      onWishlist(id)
+      return
+    }
+
+    if (inWishlist) {
+      removeWishlistItem(id)
+      toast.success('Removed from wishlist')
+      return
+    }
+
+    addWishlistItem({
+      productId: id,
+      productName: name,
+      price,
+      image,
+      slug,
+    })
+    toast.success('Added to wishlist')
+  }
 
   const content = (
     <motion.div
@@ -73,12 +103,9 @@ export default function ProductCard({
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             className="absolute top-4 right-4 z-10 bg-navy p-2 rounded-full text-primary hover:bg-primary hover:text-navy transition-colors border border-primary/30"
-            onClick={(e) => {
-              e.preventDefault()
-              onWishlist?.(id)
-            }}
+            onClick={handleWishlistClick}
           >
-            <Heart size={20} />
+            <Heart size={20} className={inWishlist ? 'fill-current' : ''} />
           </motion.button>
         )}
 

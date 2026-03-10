@@ -279,7 +279,7 @@ export default function AdminProductsPage() {
 
                   <div className="flex items-center gap-1">
                     <Link
-                      href={`/products/${product.slug}`}
+                      href={`/products/${product.slug}?from=admin-products`}
                       className="p-2 text-primary/70 hover:text-primary hover:bg-navy-light rounded-lg transition-colors"
                       title="View"
                     >
@@ -397,7 +397,7 @@ export default function AdminProductsPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link
-                            href={`/products/${product.slug}`}
+                            href={`/products/${product.slug}?from=admin-products`}
                             className="p-2 text-primary/70 hover:text-primary hover:bg-navy-light rounded-lg transition-colors"
                             title="View"
                           >

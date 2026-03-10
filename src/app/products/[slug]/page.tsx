@@ -1,19 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, Check, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Product, Review } from '@/types/product';
 import { useCartStore } from '@/store/cartStore';
 import toast from 'react-hot-toast';
 import { CloudinaryImageAsset, getMappedCloudinaryImage } from '@/lib/product-image-map';
 import Breadcrumb from '@/components/navigation/Breadcrumb';
+import { useWishlistStore } from '@/store/wishlistStore';
 
 export default function ProductPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = params.slug as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -26,6 +28,16 @@ export default function ProductPage() {
   const [isFavorite, setIsFavorite] = useState(false);
   
   const addItem = useCartStore((state) => state.addItem);
+  const addWishlistItem = useWishlistStore((state) => state.addItem)
+  const removeWishlistItem = useWishlistStore((state) => state.removeItem)
+  const isInWishlist = useWishlistStore((state) => state.isInWishlist)
+
+  const from = searchParams.get('from')
+  const mobileBackHref = from === 'admin-products'
+    ? '/admin/products'
+    : from === 'wishlist'
+      ? '/wishlist'
+      : '/collections'
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,6 +71,7 @@ export default function ProductPage() {
           }
 
           setProduct(productData);
+          setIsFavorite(isInWishlist(productData.id))
           setRelatedProducts(data.relatedProducts || []);
           setProductReviews(data.product.reviews || []);
           
@@ -115,6 +128,29 @@ export default function ProductPage() {
     });
   };
 
+  const handleToggleWishlist = () => {
+    if (!product) return
+
+    const currentlyInWishlist = isInWishlist(product.id)
+
+    if (currentlyInWishlist) {
+      removeWishlistItem(product.id)
+      setIsFavorite(false)
+      toast.success('Removed from wishlist')
+      return
+    }
+
+    addWishlistItem({
+      productId: product.id,
+      productName: product.name,
+      price: product.price,
+      image: product.images[0] || '',
+      slug: product.slug,
+    })
+    setIsFavorite(true)
+    toast.success('Added to wishlist')
+  }
+
   const nextImage = () => {
     setSelectedImage((prev) => (prev + 1) % product.images.length);
   };
@@ -130,6 +166,16 @@ export default function ProductPage() {
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
       <div className="max-w-7xl mx-auto">
+        <div className="mb-4 md:hidden">
+          <Link
+            href={mobileBackHref}
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/30 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </Link>
+        </div>
+
         {/* Breadcrumb */}
         <Breadcrumb
           items={[
@@ -183,7 +229,7 @@ export default function ProductPage() {
 
               {/* Favorite Button */}
               <button
-                onClick={() => setIsFavorite(!isFavorite)}
+                onClick={handleToggleWishlist}
                 className="absolute top-4 right-4 bg-navy/80 hover:bg-navy p-3 rounded-full transition-colors"
               >
                 <Heart className={`w-6 h-6 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
