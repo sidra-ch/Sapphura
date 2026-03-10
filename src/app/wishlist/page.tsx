@@ -83,7 +83,7 @@ export default function WishlistPage() {
   const sortedItems = getSortedItems()
 
   return (
-    <main className="min-h-screen bg-navy">
+    <main className="min-h-screen bg-navy pt-28 md:pt-32">
       <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Wishlist' }]} />
 
       <section className="py-12">
