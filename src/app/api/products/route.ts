@@ -32,6 +32,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
     const limit = searchParams.get('limit')
+    const allowFallback = searchParams.get('fallback') !== '0'
 
     const where = category && category !== 'all'
       ? { category: { contains: category, mode: 'insensitive' as const } }
@@ -47,6 +48,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, products, count: products.length, source: 'database' })
     }
 
+    if (!allowFallback) {
+      return NextResponse.json({ success: true, products: [], count: 0, source: 'database' })
+    }
+
     const media = await getDynamicMediaLibrary()
     const cloudinaryProducts = toCatalogProducts(
       media.allAssets.filter((asset) => asset.resourceType === 'image')
@@ -60,6 +65,14 @@ export async function GET(request: Request) {
       const { searchParams } = new URL(request.url)
       const category = searchParams.get('category')
       const limit = searchParams.get('limit')
+      const allowFallback = searchParams.get('fallback') !== '0'
+
+      if (!allowFallback) {
+        return NextResponse.json(
+          { success: false, error: 'Failed to fetch products' },
+          { status: 500 }
+        )
+      }
 
       const media = await getDynamicMediaLibrary()
       const cloudinaryProducts = toCatalogProducts(

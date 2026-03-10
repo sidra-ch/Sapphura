@@ -32,6 +32,7 @@ export default function AdminProductsPage() {
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
 
@@ -48,15 +49,26 @@ export default function AdminProductsPage() {
   }, [router])
 
   const fetchProducts = useCallback(async () => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
+
     try {
-      const response = await fetch('/api/products')
+      setError('')
+      const response = await fetch('/api/products?fallback=0', {
+        cache: 'no-store',
+        signal: controller.signal,
+      })
       const data = await response.json()
       if (data.success) {
         setProducts(data.products)
+      } else {
+        setError(data.error || 'Failed to fetch products')
       }
     } catch (error) {
       console.error('Failed to fetch products:', error)
+      setError('Failed to fetch products. Please try again.')
     } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
     }
   }, [])
@@ -129,6 +141,12 @@ export default function AdminProductsPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {error ? (
+          <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300">
+            {error}
+          </div>
+        ) : null}
+
         {/* Filters */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
