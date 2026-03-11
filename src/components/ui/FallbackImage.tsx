@@ -80,6 +80,7 @@ export default function FallbackImage({
 
   // Use simple img tag if Next.js Image failed
   if (useSimpleImg) {
+      // eslint-disable-next-line @next/next/no-img-element
     return (
       <img
         src={src}
