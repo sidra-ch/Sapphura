@@ -31,10 +31,9 @@ export default function WhatsAppWidget() {
 
   const handleWhatsAppClick = () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-    const url = isMobile 
-      ? `api://send?phone=${phoneNumber}&text=${encodeURIComponent(defaultMessage)}`
+    const url = isMobile
+      ? `https://wa.me/${phoneNumber}?text=${encodeURIComponent(defaultMessage)}`
       : `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(defaultMessage)}`
-      
     window.open(url, '_blank')
     setIsOpen(false)
   }
