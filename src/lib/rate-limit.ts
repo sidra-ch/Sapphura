@@ -77,7 +77,7 @@ export const rateLimits = {
  */
 setInterval(() => {
   const now = Date.now()
-  for (const [key, entry] of store.entries()) {
+  for (const [key, entry] of Array.from(store.entries())) {
     if (now > entry.resetTime) {
       store.delete(key)
     }

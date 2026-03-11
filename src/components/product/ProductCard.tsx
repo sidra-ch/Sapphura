@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { useWishlistStore } from '@/store/wishlistStore'
+import FallbackImage from '@/components/ui/FallbackImage'
 
 type ProductCardProps = {
   id: string
@@ -116,12 +117,19 @@ export default function ProductCard({
             transition={{ duration: 0.3 }}
             className="w-full h-full relative"
           >
-            <Image
+            <FallbackImage
               src={image}
               alt={name}
               fill
               className="object-cover"
-              unoptimized
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+              priority={showAnimations}
+              onError={() => {
+                console.error('ProductCard image failed to load:', image)
+              }}
+              onLoad={() => {
+                console.log('ProductCard image loaded successfully:', image)
+              }}
             />
           </motion.div>
 

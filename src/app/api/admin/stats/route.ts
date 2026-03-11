@@ -21,20 +21,45 @@ export async function GET(request: Request) {
     // Get total orders
     const totalOrders = await prisma.order.count().catch(() => 0)
 
-    // Get total revenue
+    // Get total revenue - Calculate only from non-cancelled/completed logic or all for sum
     const orders = await prisma.order.findMany({
       select: { total: true }
     }).catch(() => [])
-    
+
     const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0)
 
-    // Get total customers (unique email addresses from orders)
-    const customers = await prisma.order.findMany({
-      select: { email: true },
-      distinct: ['email']
+    // Get total customers from Customer table (instead of order emails)
+    const totalCustomers = await prisma.customer.count().catch(() => 0)
+
+    // Get Recent Orders
+    const recentOrders = await prisma.order.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        orderNumber: true,
+        total: true,
+        status: true,
+        createdAt: true,
+        customer: {
+          select: { name: true, email: true }
+        }
+      }
     }).catch(() => [])
 
-    const totalCustomers = customers.length
+    // Get Low Stock Products (stock < 10)
+    const lowStockProducts = await prisma.product.findMany({
+      where: { stock: { lt: 10 } },
+      take: 5,
+      orderBy: { stock: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        stock: true,
+        slug: true,
+        price: true
+      }
+    }).catch(() => [])
 
     return NextResponse.json({
       success: true,
@@ -43,18 +68,15 @@ export async function GET(request: Request) {
         totalOrders,
         totalRevenue,
         totalCustomers,
+        recentOrders,
+        lowStockProducts
       }
     })
   } catch (error) {
     console.error('Error fetching stats:', error)
     return NextResponse.json({
-      success: true,
-      stats: {
-        totalProducts: 0,
-        totalOrders: 0,
-        totalRevenue: 0,
-        totalCustomers: 0,
-      }
-    })
+      success: false,
+      error: 'Failed to fetch dashboard stats'
+    }, { status: 500 })
   }
 }

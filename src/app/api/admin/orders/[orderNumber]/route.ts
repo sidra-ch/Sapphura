@@ -4,8 +4,8 @@ import { z } from 'zod'
 import { getAuthUserFromRequest, isAdminRole } from '@/lib/auth-utils'
 
 const updateOrderSchema = z.object({
-  status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED']),
-  paymentStatus: z.enum(['UNPAID', 'PAID', 'REFUNDED', 'FAILED']).optional(),
+  status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']).optional(),
+  paymentStatus: z.enum(['UNPAID', 'PAID', 'REFUNDED', 'PARTIALLY_REFUNDED']).optional(),
   notes: z.string().optional()
 })
 

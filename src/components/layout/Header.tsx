@@ -160,6 +160,7 @@ const Header = () => {
           onQueryChange={setSearchQuery}
           onSubmit={handleSearch}
           onKeyDown={handleSearchKeyDown}
+          onClose={() => setIsSearchOpen(false)}
         />
       </nav>
 

@@ -89,24 +89,119 @@ const mockOrders = [
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<Tab>('profile')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
-  const [profile, setProfile] = useState(mockProfile)
+  const [isCustomerAuthenticated, setIsCustomerAuthenticated] = useState(false)
+  
+  // OTP Form State
+  const [email, setEmail] = useState('')
+  const [otp, setOtp] = useState('')
+  const [step, setStep] = useState<1 | 2>(1)
+  const [authLoading, setAuthLoading] = useState(false)
+
+  const [profile, setProfile] = useState<any>(null)
   const [addresses, setAddresses] = useState(mockAddresses)
+  const [orders, setOrders] = useState([]) // added orders state
 
   useEffect(() => {
-    const checkAdminSession = async () => {
+    const checkSessions = async () => {
       try {
-        const response = await fetch('/api/auth/session', { cache: 'no-store' })
-        const data = await response.json()
-        setIsAdminAuthenticated(Boolean(data?.success))
+        // Check Admin Session
+        fetch('/api/auth/session', { cache: 'no-store' })
+          .then(res => res.json())
+          .then(data => setIsAdminAuthenticated(Boolean(data?.success)))
+          .catch(() => setIsAdminAuthenticated(false))
+
+        // Check Customer Session
+        const res = await fetch('/api/store/auth/session', { cache: 'no-store' })
+        const data = await res.json()
+
+        if (data?.success && data?.authenticated) {
+           setIsCustomerAuthenticated(true)
+           setProfile(data.user)
+
+           // Fetch real order history
+           const ordersRes = await fetch('/api/store/orders', { cache: 'no-store' })
+           const ordersData = await ordersRes.json()
+           if (ordersData.success) {
+             setOrders(ordersData.orders)
+           }
+        }
       } catch {
-        setIsAdminAuthenticated(false)
+        setIsCustomerAuthenticated(false)
+      } finally {
+        setLoading(false)
       }
     }
 
-    checkAdminSession()
+    checkSessions()
   }, [])
+
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return toast.error('Please enter your email')
+    
+    setAuthLoading(true)
+    try {
+      const res = await fetch('/api/store/auth/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      const data = await res.json()
+      
+      if (data.success) {
+         toast.success('OTP sent! Please check your email.')
+         setStep(2)
+      } else {
+         toast.error(data.error || 'Failed to send OTP')
+      }
+    } catch {
+      toast.error('An error occurred')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!otp) return toast.error('Please enter the OTP')
+    
+    setAuthLoading(true)
+    try {
+      const res = await fetch('/api/store/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp })
+      })
+      const data = await res.json()
+      
+      if (data.success) {
+         toast.success('Logged in successfully!')
+         setIsCustomerAuthenticated(true)
+         setProfile(data.customer)
+         // Refresh the layout correctly
+         window.location.reload()
+      } else {
+         toast.error(data.error || 'Invalid OTP')
+      }
+    } catch {
+      toast.error('An error occurred')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+  
+  const handleCustomerLogout = async () => {
+    if (!confirm('Are you sure you want to log out?')) return
+    try {
+      await fetch('/api/store/auth/logout', { method: 'POST' })
+      toast.success('Logged out successfully')
+      window.location.reload()
+    } catch {
+      toast.error('Failed to logout')
+    }
+  }
 
   const tabs: { id: Tab; label: string; icon: typeof User }[] = [
     { id: 'profile', label: 'My Profile', icon: User },
@@ -231,64 +326,138 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="mb-8 grid grid-cols-1 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-2">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <motion.button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-3 font-semibold transition-all sm:px-6 ${
-                    activeTab === tab.id
-                      ? 'gold-btn text-navy'
-                      : 'border-2 border-primary text-primary hover:bg-primary/10'
-                  }`}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Icon size={20} />
-                  {tab.label}
-                </motion.button>
-              )
-            })}
-          </div>
+          {loading ? (
+             <div className="flex items-center justify-center py-20">
+               <Loader />
+             </div>
+          ) : !isCustomerAuthenticated ? (
+             <motion.div
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="max-w-md mx-auto gold-glass p-8 rounded-2xl border border-primary/20 backdrop-blur-md"
+             >
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-primary mb-2">Welcome Back</h2>
+                  <p className="text-primary/70">Login or sign up to manage your orders</p>
+                </div>
+                
+                {step === 1 ? (
+                  <form onSubmit={handleSendOTP} className="space-y-4">
+                    <div>
+                      <label className="block text-primary/80 mb-2 font-medium">Email Address</label>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full bg-navy border-2 border-primary/20 rounded-xl px-4 py-3 text-primary placeholder:text-primary/30 focus:outline-none focus:border-primary transition-colors"
+                        placeholder="you@example.com"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={authLoading}
+                      className="w-full gold-btn py-3 rounded-xl font-bold text-navy flex justify-center items-center gap-2 mt-6"
+                    >
+                      {authLoading ? <Loader /> : 'Send OTP Code'}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOTP} className="space-y-4">
+                    <div>
+                      <label className="block text-primary/80 mb-2 font-medium">Enter 6-digit Setup Code</label>
+                      <input
+                         type="text"
+                         required
+                         maxLength={6}
+                         value={otp}
+                         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                         className="w-full bg-navy border-2 border-primary/20 rounded-xl px-4 py-3 text-primary text-center text-2xl tracking-widest focus:outline-none focus:border-primary transition-colors"
+                         placeholder="------"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={authLoading}
+                      className="w-full gold-btn py-3 rounded-xl font-bold text-navy flex justify-center items-center gap-2 mt-6"
+                    >
+                      {authLoading ? <Loader /> : 'Verify & Login'}
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setStep(1)}
+                      className="w-full text-primary/70 hover:text-primary text-sm mt-4 transition-colors"
+                    >
+                      Wrong email? Go back
+                    </button>
+                  </form>
+                )}
+             </motion.div>
+          ) : (
+            <>
+              {/* Tab Navigation */}
+              <div className="mb-8 grid grid-cols-1 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-2">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-3 font-semibold transition-all sm:px-6 ${
+                        activeTab === tab.id
+                          ? 'gold-btn text-navy'
+                          : 'border-2 border-primary text-primary hover:bg-primary/10'
+                      }`}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Icon size={20} />
+                      {tab.label}
+                    </motion.button>
+                  )
+                })}
+              </div>
 
-          {/* Loading Overlay */}
-          {loading && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <Loader />
-            </div>
+              {/* Tab Content */}
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                {activeTab === 'profile' && profile && (
+                  <div>
+                    <ProfileEditor
+                      profile={{ name: profile.name || '', email: profile.email || '', phone: profile.phone || '' }}
+                      onSave={handleProfileSave}
+                      loading={loading}
+                    />
+                    <div className="mt-8 flex justify-center sm:justify-start">
+                      <button 
+                        onClick={handleCustomerLogout}
+                        className="flex items-center gap-2 text-red-400 hover:text-red-300 font-semibold px-4 py-2 rounded-lg border border-red-500/30 hover:border-red-400"
+                      >
+                         <LogOut size={16} /> Logout from Customer Account
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'addresses' && (
+                  <AddressManager
+                    addresses={addresses}
+                    onAdd={handleAddAddress}
+                    onUpdate={handleUpdateAddress}
+                    onDelete={handleDeleteAddress}
+                    onSetDefault={handleSetDefaultAddress}
+                    loading={loading}
+                  />
+                )}
+
+                {activeTab === 'orders' && <OrderHistory orders={mockOrders} loading={loading} />}
+              </motion.div>
+            </>
           )}
-
-          {/* Tab Content */}
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            {activeTab === 'profile' && (
-              <ProfileEditor
-                profile={{ name: profile.name, email: profile.email, phone: profile.phone }}
-                onSave={handleProfileSave}
-                loading={loading}
-              />
-            )}
-
-            {activeTab === 'addresses' && (
-              <AddressManager
-                addresses={addresses}
-                onAdd={handleAddAddress}
-                onUpdate={handleUpdateAddress}
-                onDelete={handleDeleteAddress}
-                onSetDefault={handleSetDefaultAddress}
-                loading={loading}
-              />
-            )}
-
-            {activeTab === 'orders' && <OrderHistory orders={mockOrders} loading={loading} />}
-          </motion.div>
         </div>
       </section>
     </main>

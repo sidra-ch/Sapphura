@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LayoutDashboard, Package, ShoppingCart } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, Tag, Truck } from 'lucide-react'
 
 type AdminSidebarProps = {
   activePath?: string
@@ -9,6 +9,8 @@ const links = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { label: 'Products', href: '/admin/products', icon: Package },
   { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
+  { label: 'Campaigns', href: '/admin/campaigns', icon: Tag },
+  { label: 'Shipping', href: '/admin/shipping', icon: Truck },
 ]
 
 export default function AdminSidebar({ activePath }: AdminSidebarProps) {

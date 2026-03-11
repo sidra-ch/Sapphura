@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     }
 
     // Create or update customer
-    await prisma.customer.upsert({
+    const customerRecord = await prisma.customer.upsert({
       where: { email },
       update: {
         totalOrders: { increment: 1 },
@@ -140,6 +140,12 @@ export async function POST(request: Request) {
         totalOrders: 1,
         totalSpent: total,
       },
+    })
+    
+    // Explicitly link this specific Order row to the Customer user row
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { customerId: customerRecord.id }
     })
 
     // Send order confirmation email (don't fail order if email fails)

@@ -24,7 +24,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 type CheckoutStep = 'shipping' | 'review' | 'payment';
-type PaymentMethod = 'cod' | 'easypaisa' | 'jazzcash' | 'visa' | 'mastercard';
+type PaymentMethod = 'cod' | 'easypaisa' | 'jazzcash' | 'card';
 
 interface ShippingInfo {
   fullName: string;
@@ -153,10 +153,31 @@ export default function CheckoutPage() {
 
       const data = await response.json();
       
-      // Clear cart
+      // Clear cart locally since order is now in the DB
       clearCart();
 
-      if (isOnlinePayment) {
+      if (paymentMethod === 'card') {
+        // Init Stripe Checkout
+        const stripeRes = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items,
+            orderId: data.order.orderNumber,
+            email: shippingInfo.email,
+            checkoutDetails: shippingInfo
+          }),
+        });
+
+        const stripeData = await stripeRes.json();
+        
+        if (stripeRes.ok && stripeData.url) {
+          window.location.href = stripeData.url;
+          return; // Stop execution here, letting the browser redirect
+        } else {
+          throw new Error(stripeData.error || 'Failed to initialize payment gateway');
+        }
+      } else if (isOnlinePayment) {
         router.push(`/payment/${data.order.orderNumber}?method=${paymentMethod}&total=${total}`);
       } else {
         // Redirect COD orders directly to confirmation page
@@ -550,10 +571,10 @@ export default function CheckoutPage() {
                       </div>
                     </label>
 
-                    {/* Visa */}
+                    {/* Credit/Debit Card (Stripe) */}
                     <label
                       className={`block p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                        paymentMethod === 'visa'
+                        paymentMethod === 'card'
                           ? 'border-primary bg-primary/10'
                           : 'border-primary/30 hover:border-primary/50'
                       }`}
@@ -562,39 +583,14 @@ export default function CheckoutPage() {
                         <input
                           type="radio"
                           name="payment"
-                          value="visa"
-                          checked={paymentMethod === 'visa'}
-                          onChange={() => setPaymentMethod('visa')}
+                          value="card"
+                          checked={paymentMethod === 'card'}
+                          onChange={() => setPaymentMethod('card')}
                           className="w-5 h-5 text-primary"
                         />
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg mb-1">Visa Card</h3>
-                          <p className="text-sm opacity-70">Pay using Visa debit/credit card</p>
-                        </div>
-                        <CreditCard className="w-8 h-8 text-primary" />
-                      </div>
-                    </label>
-
-                    {/* MasterCard */}
-                    <label
-                      className={`block p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                        paymentMethod === 'mastercard'
-                          ? 'border-primary bg-primary/10'
-                          : 'border-primary/30 hover:border-primary/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <input
-                          type="radio"
-                          name="payment"
-                          value="mastercard"
-                          checked={paymentMethod === 'mastercard'}
-                          onChange={() => setPaymentMethod('mastercard')}
-                          className="w-5 h-5 text-primary"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-bold text-lg mb-1">MasterCard</h3>
-                          <p className="text-sm opacity-70">Pay using MasterCard debit/credit card</p>
+                          <h3 className="font-bold text-lg mb-1">Credit / Debit Card</h3>
+                          <p className="text-sm opacity-70">Pay securely via Stripe (Visa, Mastercard, etc.)</p>
                         </div>
                         <CreditCard className="w-8 h-8 text-primary" />
                       </div>

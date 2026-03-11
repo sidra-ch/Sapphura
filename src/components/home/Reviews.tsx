@@ -9,7 +9,7 @@ const Reviews = () => {
       name: 'Ayesha Khan',
       rating: 5,
       review: 'Absolutely stunning jewellery! The quality is amazing and the delivery was super fast. Highly recommended!',
-      location: 'Karachi',
+      location: 'Rawalpindi',
       product: 'Royal Bridal Set'
     },
     {

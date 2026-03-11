@@ -5,13 +5,14 @@ import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, Check, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, Check, ArrowLeft } from 'lucide-react';
 import { Product, Review } from '@/types/product';
 import { useCartStore } from '@/store/cartStore';
 import toast from 'react-hot-toast';
 import { CloudinaryImageAsset, getMappedCloudinaryImage } from '@/lib/product-image-map';
 import Breadcrumb from '@/components/navigation/Breadcrumb';
 import { useWishlistStore } from '@/store/wishlistStore';
+import ShopifyProductGallery from '@/components/product/ShopifyProductGallery';
 
 export default function ProductPage() {
   const params = useParams();
@@ -21,7 +22,6 @@ export default function ProductPage() {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [productReviews, setProductReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
@@ -151,14 +151,6 @@ export default function ProductPage() {
     toast.success('Added to wishlist')
   }
 
-  const nextImage = () => {
-    setSelectedImage((prev) => (prev + 1) % product.images.length);
-  };
-
-  const prevImage = () => {
-    setSelectedImage((prev) => (prev - 1 + product.images.length) % product.images.length);
-  };
-
   const discount = product.originalPrice 
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
@@ -187,80 +179,18 @@ export default function ProductPage() {
 
         {/* Product Detail Section */}
         <div className="grid lg:grid-cols-2 gap-12 mb-16">
-          {/* Image Gallery */}
-          <div className="space-y-4">
-            {/* Main Image */}
-            <motion.div 
-              className="relative aspect-square gold-glass rounded-2xl overflow-hidden group"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Image
-                src={product.images[selectedImage]}
-                alt={product.name}
-                fill
-                className="object-cover"
-              />
-              
-              {/* Image Navigation */}
-              {product.images.length > 1 && (
-                <>
-                  <button
-                    onClick={prevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-navy/80 hover:bg-navy p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <ChevronLeft className="w-6 h-6" />
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-navy/80 hover:bg-navy p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                </>
-              )}
-
-              {/* Discount Badge */}
-              {discount > 0 && (
-                <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  {discount}% OFF
-                </div>
-              )}
-
-              {/* Favorite Button */}
-              <button
-                onClick={handleToggleWishlist}
-                className="absolute top-4 right-4 bg-navy/80 hover:bg-navy p-3 rounded-full transition-colors"
-              >
-                <Heart className={`w-6 h-6 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
-              </button>
-            </motion.div>
-
-            {/* Thumbnail Images */}
-            {product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-4">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                      selectedImage === index 
-                        ? 'border-primary scale-105' 
-                        : 'border-transparent opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <Image
-                      src={image}
-                      alt={`${product.name} ${index + 1}`}
-                      width={150}
-                      height={150}
-                      className="object-cover w-full h-full"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Shopify Product Gallery */}
+          <ShopifyProductGallery
+            media={product ? [
+              ...product.images.map(url => ({ type: 'image' as const, url, alt: product.name })),
+              ...(product.video ? [{ type: 'video' as const, url: product.video, alt: product.name }] : [])
+            ] : []}
+            mediaUrls={product?.mediaUrls || []} // Use direct media URLs from database
+            productName={product?.name || ''}
+            enableZoom={true}
+            enableVideoAutoplay={false}
+            thumbnailPosition="bottom"
+          />
 
           {/* Product Info */}
           <motion.div
@@ -269,6 +199,24 @@ export default function ProductPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
+            {/* Badge and Favorite */}
+            <div className="flex items-center justify-between">
+              {/* Discount Badge */}
+              {discount > 0 && (
+                <div className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  {discount}% OFF
+                </div>
+              )}
+              
+              {/* Favorite Button */}
+              <button
+                onClick={handleToggleWishlist}
+                className="bg-navy/80 hover:bg-navy p-3 rounded-full transition-colors"
+              >
+                <Heart className={`w-6 h-6 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+              </button>
+            </div>
+
             <div>
               <h1 className="text-4xl font-bold mb-2">{product.name}</h1>
               <div className="flex items-center gap-4 mb-4">

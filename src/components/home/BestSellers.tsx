@@ -21,95 +21,75 @@ interface Product {
   color?: string
 }
 
-const BestSellers = () => {
+interface BestSellersProps {
+  initialAssets?: CloudinaryImageAsset[]
+}
+
+const BestSellers = ({ initialAssets = [] }: BestSellersProps) => {
   const addItem = useCartStore((state) => state.addItem)
   const addWishlistItem = useWishlistStore((state) => state.addItem)
   const removeWishlistItem = useWishlistStore((state) => state.removeItem)
   const isInWishlist = useWishlistStore((state) => state.isInWishlist)
-  const [cloudinaryAssets, setCloudinaryAssets] = useState<CloudinaryImageAsset[]>([])
+  const [cloudinaryAssets, setCloudinaryAssets] = useState<CloudinaryImageAsset[]>(initialAssets)
   const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!initialAssets.length)
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Load Cloudinary images first to ensure category diversity
-        const cloudinaryResponse = await fetch('/api/cloudinary/media', { cache: 'no-store' })
-        const cloudinaryJson = await cloudinaryResponse.json()
-        
-        if (cloudinaryJson.success && Array.isArray(cloudinaryJson.media?.allAssets)) {
-          const imageAssets = cloudinaryJson.media.allAssets
-            .filter((asset: { resourceType: string }) => asset.resourceType === 'image')
-            .map((asset: { publicId: string; secureUrl: string }) => ({
-              publicId: asset.publicId,
-              secureUrl: asset.secureUrl,
-            }))
-
-          setCloudinaryAssets(imageAssets)
-          console.log('🖼️ Best Sellers Cloudinary images:', imageAssets.length, 'images loaded')
-          
-          // Create products directly from Cloudinary with guaranteed categories
-          const bestSellersProducts: Product[] = []
-          
-          // Exact order: Winter, Summer, Suit, Earring, Bangles, Suit
-          const categoryMatchers = [
-            { keyword: 'wintercollection', name: 'Winter Collection', category: 'Winter Collection' },
-            { keyword: 'summer', name: 'Summer Collection', category: 'Summer Collection' },
-            { keyword: 'suit', name: 'Designer Suit', category: 'Suits' },
-            { keyword: 'earing', name: 'Elegant Earrings', category: 'Earrings' },
-            { keyword: 'bangal', name: 'Beautiful Bangles', category: 'Bangles' },
-            { keyword: 'suit', name: 'Premium Suit', category: 'Suits', skip: 1 }, // Different suit
-          ]
-          
-          categoryMatchers.forEach((matcher, index) => {
-            const normalize = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '')
-            
-            let foundAssets = imageAssets.filter((asset: { publicId: string }) => 
-              normalize(asset.publicId).includes(normalize(matcher.keyword))
-            )
-            
-            // For second suit, skip the first one
-            if (matcher.skip && foundAssets.length > matcher.skip) {
-              foundAssets = foundAssets.slice(matcher.skip)
-            }
-            
-            const selectedAsset = foundAssets[0]
-            
-            if (selectedAsset) {
-              // Create a product from this Cloudinary image
-              const publicId = selectedAsset.publicId
-              // Use the same slug format as cloudinary-catalog.ts
-              const slug = encodeURIComponent(publicId)
-              
-              bestSellersProducts.push({
-                id: publicId,
-                name: matcher.name,
-                slug: slug,
-                price: matcher.category === 'Winter Collection' ? 3999 :
-                       matcher.category === 'Summer Collection' ? 2999 :
-                       matcher.category === 'Suits' ? 4999 :
-                       matcher.category === 'Earrings' ? 1999 :
-                       matcher.category === 'Bangles' ? 2499 : 3499,
-                images: [selectedAsset.secureUrl],
-                rating: 4.5 + (index * 0.1),
-              })
-            }
-          })
-          
-          setProducts(bestSellersProducts)
-          console.log('✅ Best Sellers created from Cloudinary:', bestSellersProducts.length, 'products')
-          console.log('Categories:', bestSellersProducts.map(p => p.name))
-        }
-        
-        setLoading(false)
-      } catch (error) {
-        console.error('❌ BestSellers data fetch error:', error)
-        setLoading(false)
+    // Hardcoded best sellers for reliable image loading
+    const bestSellersProducts: Product[] = [
+      {
+        id: 'wintercollection-5_a2uwvx',
+        name: 'Winter Collection',
+        slug: 'wintercollection-5_a2uwvx',
+        price: 3999,
+        images: ['https://res.cloudinary.com/dwmxdyvd2/image/upload/v1773004862/wintercollection-5_a2uwvx.jpg'],
+        rating: 4.8,
+      },
+      {
+        id: 'summer-3_yoelfq',
+        name: 'Summer Collection',
+        slug: 'summer-3_yoelfq',
+        price: 2999,
+        images: ['https://res.cloudinary.com/dwmxdyvd2/image/upload/v1773004844/summer-3_yoelfq.jpg'],
+        rating: 4.6,
+      },
+      {
+        id: 'suit-2_vrrzjh',
+        name: 'Designer Suit',
+        slug: 'suit-2_vrrzjh',
+        price: 4999,
+        images: ['https://res.cloudinary.com/dwmxdyvd2/image/upload/v1773004805/suit-2_vrrzjh.jpg'],
+        rating: 4.9,
+      },
+      {
+        id: 'earing-1_zd3fr9',
+        name: 'Elegant Earrings',
+        slug: 'earing-1_zd3fr9',
+        price: 1999,
+        images: ['https://res.cloudinary.com/dwmxdyvd2/image/upload/v1773004783/earing-1_zd3fr9.jpg'],
+        rating: 4.7,
+      },
+      {
+        id: 'bangals-2_slcypx',
+        name: 'Beautiful Bangles',
+        slug: 'bangals-2_slcypx',
+        price: 2499,
+        images: ['https://res.cloudinary.com/dwmxdyvd2/image/upload/v1773004770/bangals-2_slcypx.jpg'],
+        rating: 4.8,
+      },
+      {
+        id: 'suit-6_nqlzt6',
+        name: 'Premium Suit',
+        slug: 'suit-6_nqlzt6',
+        price: 5999,
+        images: ['https://res.cloudinary.com/dwmxdyvd2/image/upload/v1773004809/suit-6_nqlzt6.jpg'],
+        rating: 4.9,
       }
-    }
+    ]
 
-    loadData()
-  }, [])
+    setProducts(bestSellersProducts)
+    setLoading(false)
+  }, []) // Empty dependency array as we only want to run this once
 
   // Add badges and colors without changing the carefully selected images
   const displayProducts = products.map((product, index) => ({

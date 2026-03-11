@@ -289,3 +289,48 @@ export function generateContactResponseEmail(data: {
     </html>
   `
 }
+
+/**
+ * Send OTP email for login/signup
+ */
+export function generateOTPEmail(data: {
+  otp: string
+}): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #122852; color: #f4c04d; padding: 20px; text-align: center; border-radius: 5px; }
+        .content { padding: 20px; text-align: center; }
+        .otp-code { font-size: 32px; font-weight: bold; letter-spacing: 5px; padding: 15px; margin: 20px 0; background: #f8f9fa; border: 1px dashed #ccc; display: inline-block; border-radius: 8px;}
+        .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; border-top: 1px solid #eee; margin-top: 20px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Sappura Code</h1>
+        </div>
+
+        <div class="content">
+          <p>Your one-time authentication code is:</p>
+          
+          <div class="otp-code">
+            ${data.otp}
+          </div>
+
+          <p>Please enter this code in the app to securely log in or sign up.</p>
+          <p style="color: #888; font-size: 13px;">This code will expire in 10 minutes. If you didn't request this, you can safely ignore this email.</p>
+        </div>
+
+        <div class="footer">
+          <p>&copy; ${new Date().getFullYear()} Sappura. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}

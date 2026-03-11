@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getDynamicMediaLibrary } from '@/lib/cloudinary';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -11,7 +10,8 @@ export async function GET() {
       { success: true, media },
       {
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Cache-Control': 'public, max-age=300, s-maxage=600', // Cache for 5min, CDN for 10min
+          'Vary': 'Accept-Encoding',
         },
       }
     );

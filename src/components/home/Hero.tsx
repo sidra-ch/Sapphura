@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
+import SkeletonLoader from '@/components/ui/SkeletonLoader'
 
 type HeroMedia = {
   logo: { secureUrl: string } | null
@@ -13,16 +14,40 @@ type HeroMedia = {
   allAssets?: { publicId: string; secureUrl: string; resourceType: 'image' | 'video' }[]
 }
 
-const Hero = () => {
-  const [heroMedia, setHeroMedia] = useState<HeroMedia | null>(null)
+interface HeroClientProps {
+  initialMedia?: HeroMedia | null
+  initialError?: string | null
+}
+
+const HeroClient = ({ initialMedia = null, initialError = null }: HeroClientProps) => {
+  const [heroMedia, setHeroMedia] = useState<HeroMedia | null>(initialMedia)
   const [selectedSuitImage, setSelectedSuitImage] = useState<string | null>(null)
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
+  const [isLoading, setIsLoading] = useState(!initialMedia)
+  const [error, setError] = useState<string | null>(initialError)
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
   useEffect(() => {
+    if (initialMedia) {
+      if (initialMedia.videos && initialMedia.videos.length > 0) {
+        setCurrentVideoIndex(Math.floor(Math.random() * initialMedia.videos.length))
+      }
+      return
+    }
+
     const loadHeroMedia = async () => {
       try {
-        const response = await fetch('/api/cloudinary/media', { cache: 'no-store' })
+        setIsLoading(true)
+        setError(null)
+        
+        const response = await fetch('/api/cloudinary/media', { 
+          cache: 'no-store'
+        })
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch media')
+        }
+        
         const json = await response.json()
         if (json.success && json.media) {
           const suits = Array.isArray(json.media.suits) ? json.media.suits : []
@@ -31,7 +56,9 @@ const Hero = () => {
           let fallbackSuits: { secureUrl: string }[] = []
           if (suits.length === 0) {
             try {
-              const productsResponse = await fetch('/api/products?limit=20', { cache: 'no-store' })
+              const productsResponse = await fetch('/api/products?limit=20', { 
+                cache: 'no-store'
+              })
               const productsJson = await productsResponse.json()
               if (productsJson.success && Array.isArray(productsJson.products)) {
                 fallbackSuits = productsJson.products
@@ -64,9 +91,14 @@ const Hero = () => {
           } else {
             setSelectedSuitImage(null)
           }
+        } else {
+          throw new Error(json.error || 'No media found')
         }
       } catch (error) {
         console.error('❌ Hero Cloudinary fetch error:', error)
+        setError('Failed to load media')
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -185,15 +217,26 @@ const Hero = () => {
               transition={{ delay: 0.2 }}
               className="flex items-center space-x-2 mb-4"
             >
-              {logoUrl && (
+              {isLoading ? (
+                <SkeletonLoader type="circle" width={40} height={40} />
+              ) : logoUrl ? (
                 <div className="w-10 h-10 rounded-full overflow-hidden border border-primary/50 bg-navy-light relative">
                   <Image
                     src={logoUrl}
                     alt="Sappura logo"
                     fill
                     className="object-cover"
-                    unoptimized
+                    priority
+                    sizes="40px"
                   />
+                </div>
+              ) : error ? (
+                <div className="w-10 h-10 rounded-full border border-primary/50 bg-navy-light flex items-center justify-center">
+                  <Sparkles className="text-primary" size={20} />
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full border border-primary/50 bg-navy-light flex items-center justify-center">
+                  <Sparkles className="text-primary" size={20} />
                 </div>
               )}
               <Sparkles className="text-primary" size={24} />
@@ -289,7 +332,9 @@ const Hero = () => {
               <div className="bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl p-8 shadow-2xl border border-primary/20">
                 <div className="gold-glass rounded-2xl p-4">
                   <div className="aspect-square bg-gradient-to-br from-navy-dark to-navy rounded-xl flex items-center justify-center relative overflow-hidden">
-                    {currentVideo ? (
+                    {isLoading ? (
+                      <SkeletonLoader className="w-full h-full rounded-xl" />
+                    ) : currentVideo ? (
                       <video
                         key={currentVideo}
                         ref={videoRef}
@@ -308,10 +353,19 @@ const Hero = () => {
                         alt="Featured suit"
                         fill
                         className="object-cover"
-                        unoptimized
+                        priority
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
+                    ) : error ? (
+                      <div className="flex flex-col items-center justify-center text-primary/50">
+                        <Sparkles size={60} />
+                        <p className="mt-2 text-sm">Media unavailable</p>
+                      </div>
                     ) : (
-                      <Sparkles className="text-primary" size={120} />
+                      <div className="flex flex-col items-center justify-center text-primary/50">
+                        <Sparkles size={120} />
+                        <p className="mt-2 text-sm">Loading media...</p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -325,4 +379,4 @@ const Hero = () => {
   )
 }
 
-export default Hero
+export default HeroClient
