@@ -106,7 +106,7 @@ export default function ShopifyProductGallery({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isZoomed, isFullscreen, processedMedia.length])
+  }, [isZoomed, isFullscreen, processedMedia.length, handleNextMedia, handlePreviousMedia])
 
   const handleMediaSelect = useCallback((index: number) => {
     if (index >= 0 && index < processedMedia.length) {

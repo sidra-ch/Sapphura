@@ -61,4 +61,13 @@ export default function SimpleImage({
       style={{ objectFit: 'cover' }}
     />
   )
-}
+    <Image
+      src={src}
+      alt={alt}
+      className={className}
+      width={width}
+      height={height}
+      onError={handleError}
+      onLoad={handleLoad}
+      style={{ objectFit: 'cover' }}
+    />

@@ -97,17 +97,17 @@ export default function FallbackImage({
     )
   }
 
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      fill={fill}
-      className={className}
-      sizes={sizes}
-      priority={priority}
-      width={width}
-      height={height}
-      onError={handleError}
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        className={className}
+        width={width}
+        height={height}
+        onError={handleSimpleImgError}
+        onLoad={onLoad}
+      />
+    )
       onLoad={handleLoad}
     />
   )

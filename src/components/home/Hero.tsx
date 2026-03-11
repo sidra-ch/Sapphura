@@ -35,82 +35,82 @@ const HeroClient = ({ initialMedia = null, initialError = null }: HeroClientProp
       return
     }
 
-    const loadHeroMedia = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        
-        const response = await fetch('/api/cloudinary/media', { 
-          cache: 'no-store'
-        })
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch media')
+    useEffect(() => {
+      if (initialMedia) {
+        if (initialMedia.videos && initialMedia.videos.length > 0) {
+          setCurrentVideoIndex(Math.floor(Math.random() * initialMedia.videos.length))
         }
-        
-        const json = await response.json()
-        if (json.success && json.media) {
-          const suits = Array.isArray(json.media.suits) ? json.media.suits : []
-          const videos = Array.isArray(json.media.videos) ? json.media.videos : []
-
-          let fallbackSuits: { secureUrl: string }[] = []
-          if (suits.length === 0) {
-            try {
-              const productsResponse = await fetch('/api/products?limit=20', { 
-                cache: 'no-store'
-              })
-              const productsJson = await productsResponse.json()
-              if (productsJson.success && Array.isArray(productsJson.products)) {
-                fallbackSuits = productsJson.products
-                  .map((product: { images?: string[] }) => product.images?.[0])
-                  .filter((url: string | undefined) => typeof url === 'string' && url.length > 0)
-                  .map((secureUrl: string) => ({ secureUrl }))
-              }
-            } catch {
-              fallbackSuits = []
-            }
-          }
-
-          const finalSuits = suits.length > 0 ? suits : fallbackSuits
-
-          setHeroMedia({
-            logo: json.media.logo,
-            suits: finalSuits,
-            videos,
-            allAssets: json.media.allAssets,
-          })
-
-          if (videos.length > 0) {
-            const randomVideoIndex = Math.floor(Math.random() * videos.length)
-            setCurrentVideoIndex(randomVideoIndex)
-          }
-
-          if (finalSuits.length > 0) {
-            const randomIndex = Math.floor(Math.random() * finalSuits.length)
-            setSelectedSuitImage(finalSuits[randomIndex].secureUrl)
-          } else {
-            setSelectedSuitImage(null)
-          }
-        } else {
-          throw new Error(json.error || 'No media found')
-        }
-      } catch (error) {
-        console.error('❌ Hero Cloudinary fetch error:', error)
-        setError('Failed to load media')
-      } finally {
-        setIsLoading(false)
+        return
       }
-    }
 
-    loadHeroMedia()
-  }, [])
+      const loadHeroMedia = async () => {
+        try {
+          setIsLoading(true)
+          setError(null)
+        
+          const response = await fetch('/api/cloudinary/media', { 
+            cache: 'no-store'
+          })
+        
+          if (!response.ok) {
+            throw new Error('Failed to fetch media')
+          }
+          const json = await response.json()
+          if (json.success && json.media) {
+            const suits = Array.isArray(json.media.suits) ? json.media.suits : []
+            const videos = Array.isArray(json.media.videos) ? json.media.videos : []
 
-  const suitImage = selectedSuitImage
-  const heroVideos = useMemo(() => {
-    const directVideos = (heroMedia?.videos ?? []).map((video) => video.secureUrl)
-    const fallbackVideos = (heroMedia?.allAssets ?? [])
-      .filter((asset) => {
-        if (asset.resourceType !== 'video') return false
+            let fallbackSuits: { secureUrl: string }[] = []
+            if (suits.length === 0) {
+              try {
+                const productsResponse = await fetch('/api/products?limit=20', { 
+                  cache: 'no-store'
+                })
+                const productsJson = await productsResponse.json()
+                if (productsJson.success && Array.isArray(productsJson.products)) {
+                  fallbackSuits = productsJson.products
+                    .map((product: { images?: string[] }) => product.images?.[0])
+                    .filter((url: string | undefined) => typeof url === 'string' && url.length > 0)
+                    .map((secureUrl: string) => ({ secureUrl }))
+                }
+              } catch {
+                fallbackSuits = []
+              }
+            }
+
+            const finalSuits = suits.length > 0 ? suits : fallbackSuits
+
+            setHeroMedia({
+              logo: json.media.logo,
+              suits: finalSuits,
+              videos,
+              allAssets: json.media.allAssets,
+            })
+
+            if (videos.length > 0) {
+              const randomVideoIndex = Math.floor(Math.random() * videos.length)
+              setCurrentVideoIndex(randomVideoIndex)
+            }
+
+            if (finalSuits.length > 0) {
+              const randomIndex = Math.floor(Math.random() * finalSuits.length)
+              setSelectedSuitImage(finalSuits[randomIndex].secureUrl)
+            } else {
+              setSelectedSuitImage(null)
+            }
+          } else {
+            throw new Error(json.error || 'No media found')
+          }
+        } catch (error) {
+          console.error('❌ Hero Cloudinary fetch error:', error)
+          setError('Failed to load media')
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
+      loadHeroMedia()
+    }, [initialMedia])
         const publicId = asset.publicId?.toLowerCase() || ''
         // Only show jewelry, clothing, and accessories related videos
         return (
