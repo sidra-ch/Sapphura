@@ -9,7 +9,7 @@ export default function WhatsAppWidget() {
   const [isOpen, setIsOpen] = useState(false)
 
   // Set this to your actual WhatsApp Number
-  const phoneNumber = '923001234567'
+  const phoneNumber = '923318807247'
 
   useEffect(() => {
     if (pathname?.includes('/products/')) {
