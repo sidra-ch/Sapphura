@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { motion } from 'framer-motion';
 import ProductCard from '@/components/product/ProductCard';
+import { Product } from '@/types/product';
 import Loader from '@/components/ui/Loader';
 import { Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -39,7 +40,7 @@ export default function ProductsPage() {
     dedupingInterval: 10000,
   });
 
-  const products = data?.products || [];
+  const products: Product[] = data?.products || [];
   const totalCount = data?.total || 0;
   const loading = isValidating && !products.length;
 
@@ -100,14 +101,25 @@ export default function ProductsPage() {
         ) : products.length > 0 ? (
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {products.map((product, idx) => (
+              {products.map((product: Product, idx: number) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                 >
-                  <ProductCard product={product} />
+                  <ProductCard
+                    id={product.id}
+                    slug={product.slug}
+                    name={product.name}
+                    image={product.images?.[0] || ''}
+                    price={product.price}
+                    rating={product.rating}
+                    originalPrice={product.originalPrice}
+                    // Add other props as needed
+                    showAnimations={true}
+                    animationDelay={idx}
+                  />
                 </motion.div>
               ))}
             </div>

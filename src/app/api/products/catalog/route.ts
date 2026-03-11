@@ -64,12 +64,12 @@ export async function GET(request: Request) {
         name: p.name,
         slug: p.slug,
         price: p.price,
-        compareAtPrice: p.compareAtPrice,
+        originalPrice: p.originalPrice,
         image: heroImage,
-        isNew: p.isNew,
+        isNewArrival: p.isNewArrival,
         inStock: p.stock > 0,
-        categoryId: p.categoryId,
-        collectionId: p.collectionId,
+        category: p.category,
+        collections: p.collections,
       };
     });
 
