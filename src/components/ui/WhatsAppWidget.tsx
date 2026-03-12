@@ -14,8 +14,6 @@ export default function WhatsAppWidget() {
 
   const widgetText = 'Chat with us on WhatsApp for instant support, product info, and order help! Friendly team, quick replies.'
 
-  const widgetText = 'Chat with us on WhatsApp for instant support, product info, and order help! Friendly team, quick replies.'
-
   useEffect(() => {
     if (pathname?.includes('/products/')) {
       let name = pathname.split('/').pop() || ''
