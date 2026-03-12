@@ -105,11 +105,11 @@ export default function FallbackImage({
         className={className}
         width={width}
         height={height}
-        onError={handleSimpleImgError}
-        onLoad={onLoad}
+        onError={handleError}
+        onLoad={handleLoad}
+        fill={fill}
+        sizes={sizes}
+        priority={priority}
       />
     )
-      onLoad={handleLoad}
-    />
-  )
-}
+  }

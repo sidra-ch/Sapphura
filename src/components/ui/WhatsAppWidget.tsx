@@ -9,7 +9,12 @@ export default function WhatsAppWidget() {
   const [isOpen, setIsOpen] = useState(false)
 
   // Set this to your actual WhatsApp Number
-  const phoneNumber = '923318807247'
+  // Use international format for WhatsApp links: 92 (Pakistan) + number without leading zero
+  const phoneNumber = '923320924951'
+
+  const widgetText = 'Chat with us on WhatsApp for instant support, product info, and order help! Friendly team, quick replies.'
+
+  const widgetText = 'Chat with us on WhatsApp for instant support, product info, and order help! Friendly team, quick replies.'
 
   useEffect(() => {
     if (pathname?.includes('/products/')) {

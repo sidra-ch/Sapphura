@@ -264,7 +264,7 @@ export default function CheckoutPage() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block mb-2 font-semibold flex items-center gap-2">
+                      <label className="block mb-2 font-semibold items-center gap-2">
                         <UserIcon className="w-4 h-4" />
                         Full Name *
                       </label>
@@ -284,7 +284,7 @@ export default function CheckoutPage() {
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block mb-2 font-semibold flex items-center gap-2">
+                        <label className="block mb-2 font-semibold items-center gap-2">
                           <Mail className="w-4 h-4" />
                           Email *
                         </label>
@@ -303,7 +303,7 @@ export default function CheckoutPage() {
                       </div>
 
                       <div>
-                        <label className="block mb-2 font-semibold flex items-center gap-2">
+                        <label className="block mb-2 font-semibold items-center gap-2">
                           <Phone className="w-4 h-4" />
                           Phone Number *
                         </label>
@@ -317,7 +317,7 @@ export default function CheckoutPage() {
                           placeholder="+92 300 1234567"
                         />
                         <p className="text-xs text-primary/70 mt-1">
-                          Order verification and support: +923318807247 (Call/WhatsApp)
+                          Need help or want to verify your order? Chat with us instantly on WhatsApp <strong>03320924951</strong> — Fast, friendly support for all your questions!
                         </p>
                         {errors.phone && (
                           <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
@@ -326,7 +326,7 @@ export default function CheckoutPage() {
                     </div>
 
                     <div>
-                      <label className="block mb-2 font-semibold flex items-center gap-2">
+                      <label className="block mb-2 font-semibold items-center gap-2">
                         <MapPin className="w-4 h-4" />
                         Street Address *
                       </label>
